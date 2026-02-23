@@ -1,0 +1,294 @@
+,Station Name,Latitude,Longitude,Station Code,Line,Sequence,Distance From Previous,Time From Previous,System
+0,Cuffe Parade,18.9135692,72.8207152,,Aqua Line (Line 3),1,0.0,0.0,Mumbai Metro
+1,Vidhan Bhavan,18.9247813,72.8254934,,Aqua Line (Line 3),2,1.0,2.0,Mumbai Metro
+2,Churchgate,18.9354797,72.8271741,,Aqua Line(Line 3),3,1.0,2.0,Mumbai Metro
+3,Hutatma Chowk,18.9341849,72.8325037,,Aqua Line (Line 3),4,0.5,1.0,Mumbai Metro
+4,Chhatrapati Shivaji Maharaj Terminus,18.9408329,72.831861,,Aqua Line (Line 3),5,1.0,2.0,Mumbai Metro
+5,Kalbadevi,18.946329,72.827193,,Aqua Line (Line 3),6,1.0,2.0,Mumbai Metro
+6,Girgaon,18.9521015,72.8222065,,Aqua Line (Line 3),7,0.5,1.0,Mumbai Metro 
+7,Grant Road,18.9632181,72.8180437,,Aqua Line (Line 3),8,1.5,3.0,Mumbai Metro 
+8,Jagannath Shankar Sheth Metro,18.9699923,72.8211795,,Aqua Line (Line 3),9,1.0,2.0,Mumbai Metro
+9,Mahalaxmi,18.979467,72.8254006,,Aqua Line (Line 3),10,0.5,1.0,Mumbai Metro 
+10,Science Museum,18.9908949,72.8213521,,Aqua Line (Line 3),11,1.5,3.0,Mumbai Metro
+11,Acharya Atre Chowk,18.9978202,72.8177201,,Aqua Line (Line 3),12,0.5,1.0,Mumbai Metro
+12,Worli,19.0086057,72.8192741,,Aqua Line (Line 3),13,1.5,3.0,Mumbai Metro
+13,Siddhivinayak Temple,19.0158935,72.8309199,,Aqua Line (Line 3),14,1.0,2.0,Mumbai Metro
+14,Dadar,19.0236601,72.8392976,,Aqua Line (Line 3),15,1.0,2.0,Mumbai Metro
+15,Shitala Devi Mandir,19.0384641,72.8419646,,Aqua Line (Line 3),16,1.5,3.0,Mumbai Metro
+16,Dharavi,19.0462612,72.849741,,Aqua Line (Line 3),17,1.0,2.0,Mumbai Metro
+17,Bandra Kurla Complex (BKC),19.0606629,72.8546797,,Aqua Line (Line 3),18,1.5,3.0,Mumbai Metro
+18,Bandra Colony,19.0699627,72.8493601,,Aqua Line (Line 3),19,1.0,2.0,Mumbai Metro
+19,Santacruz,19.0792887,72.8471185,,Aqua Line (Line 3),20,1.0,2.0,Mumbai Metro
+20,CSMI Airport Domestic T1,19.093899,72.8535765,,Aqua Line (Line 3),21,1.0,2.0,Mumbai Metro
+21,Sahar Road,19.102196,72.8652361,,Aqua Line (Line 3),22,1.5,3.0,Mumbai Metro
+22,CSMT Airport International T2,19.1023335,72.8744692,,Aqua Line (Line 3),23,0.5,1.0,Mumbai Metro
+23,Marol Naka (Line 3),19.1085041,72.878578,,Aqua Line (Line 3),24,1.0,2.0,Mumbai Metro
+24,MIDC - Andheri,19.1173537,72.8735966,,Aqua Line (Line 3),25,1.0,2.0,Mumbai Metro
+25,Seepz,19.1259985,72.8737266,,Aqua Line (Line 3),26,1.5,3.0,Mumbai Metro
+26,Aarey JVLR,19.130682294038653,72.88429282434336,,Aqua Line (Line 3),27,1.0,2.0,Mumbai Metro
+27,Versova,19.130252037869923,72.82137752003113,,Blue Line (Line 1),1,0.0,0.0,Mumbai Metro
+28,D.N. Nagar,19.128292042548463,72.83019334577527,,Blue Line (Line 1),2,0.85,1.5,Mumbai Metro
+29,Azad Nagar,19.126910150000004,72.8376484,,Blue Line (Line 1),3,0.8,1.5,Mumbai Metro
+30,Andheri L1,19.1205638,72.8488433,,Blue Line (Line 1),4,2.0,4.0,Mumbai Metro
+31,Western Express Highway,19.11586280440245,72.85642497801658,,Blue Line (Line 1),5,0.75,1.0,Mumbai Metro
+32,Chakala,19.112035894264157,72.86762183910504,,Blue Line (Line 1),6,1.2,3.0,Mumbai Metro
+33,Airport Road,19.110136485698195,72.87416726315892,,Blue Line (Line 1),7,1.0,2.0,Mumbai Metro
+34,Marol Naka L1,19.10815348495978,72.87948715177897,,Blue Line (Line 1),8,0.5,1.0,Mumbai Metro
+35,Saki Naka,19.10353599184645,72.88795802495136,,Blue Line (Line 1),9,1.0,2.0,Mumbai Metro
+36,Asalpha,19.096422567003405,72.89487802715706,,Blue Line (Line 1),10,1.0,2.0,Mumbai Metro
+37,Jagruti Nagar,19.092588492607224,72.90184159190939,,Blue Line (Line 1),11,0.8,1.0,Mumbai Metro
+38,Ghatkopar,19.08663537680251,72.90805598498635,,Blue Line (Line 1),12,1.0,2.5,Mumbai Metro
+39,Mumbai CSMT,18.9404925,72.8357856,CSMT/ST,Central 1,1,0.0,0.0,Mumbai Local Train
+40,Masjid,18.9522949,72.8381771,MSD,Central 1,2,1.0,3.0,Mumbai Local Train
+41,Sandhurst Road,18.9609243,72.8393719,SNRD,Central 1,3,1.0,2.0,Mumbai Local Train
+42,Byculla,18.9766219,72.8327936,BY,Central 1,4,2.0,3.0,Mumbai Local Train
+43,Chinchpokli,18.9871984,72.8326716,CHG,Central 1,5,1.0,2.0,Mumbai Local Train
+44,Currey Road,18.9945514,72.8328707,CRD,Central 1,6,1.0,2.0,Mumbai Local Train
+45,Parel,19.0094817,72.8376614,PR,Central 1,7,2.0,3.0,Mumbai Local Train
+46,Dadar,19.0177342,72.8437523,D/DR/DDR,Central 1,8,1.0,3.0,Mumbai Local Train
+47,Matunga,19.0274356,72.8501467,MTN,Central 1,9,1.0,3.0,Mumbai Local Train
+48,Sion,19.0465213,72.8632834,SIN,Central 1,10,1.0,4.0,Mumbai Local Train
+49,Kurla,19.06528266382214,72.87923190585366,C/CH,Central 1,11,1.0,4.0,Mumbai Local Train
+50,Vidyavihar,19.0795422,72.8971169,VVH,Central 1,12,2.0,3.0,Mumbai Local Train
+51,Ghatkopar,19.0856928,72.9083668,G,Central 1,13,2.0,3.0,Mumbai Local Train
+52,Vikhroli,19.1114795,72.928021,VK,Central 1,14,4.0,5.0,Mumbai Local Train
+53,Kanjur Marg,19.1296868,72.9283701,KJMG,Central 1,15,2.0,3.0,Mumbai Local Train
+54,Bhandup,19.1438684,72.9384327,BND,Central 1,16,2.0,3.0,Mumbai Local Train
+55,Nahur,19.1550738,72.9469187,NHU,Central 1,17,1.0,3.0,Mumbai Local Train
+56,Mulund,19.1721762,72.9562383,MLND,Central 1,18,2.0,3.0,Mumbai Local Train
+57,Thane,19.186483,72.9757664,TNA,Central 1,19,2.0,4.0,Mumbai Local Train
+58,Kalva,19.1952243,72.9963331,KLVA,Central 1,20,2.0,4.0,Mumbai Local Train
+59,Mumbra,19.1899425,73.0230752,MBQ,Central 1,21,3.0,6.0,Mumbai Local Train
+60,Diva Junction,19.1887564,73.0414169,DIVA,Central 1,22,3.0,4.0,Mumbai Local Train
+61,Kopar,19.212423,73.078865,KOPR,Central 1,23,4.0,5.0,Mumbai Local Train
+62,Dombivli,19.2180493,73.0861355,DI,Central 1,24,1.0,3.0,Mumbai Local Train
+63,Thakurli,19.2255622,73.0968165,THK,Central 1,25,1.0,3.0,Mumbai Local Train
+64,Kalyan Junction,19.2358216,73.1308101,KYN,Central 1,26,3.0,6.0,Mumbai Local Train
+65,Vithalwadi,19.228396,73.1495166,VLDI,Central 1,27,2.0,5.0,Mumbai Local Train
+66,Ulhasnagar,19.2178804,73.1630778,ULNR,Central 1,28,1.0,3.0,Mumbai Local Train
+67,Ambernath,19.2094131,73.1851962,ABH,Central 1,29,3.0,6.0,Mumbai Local Train
+68,Badlapur,19.1666237,73.2389064,BUD,Central 1,30,7.0,8.0,Mumbai Local Train
+69,Vangani,19.0943323,73.3008946,VGI,Central 1,31,11.0,9.0,Mumbai Local Train
+70,Shelu,19.063516,73.3179261,SHLU,Central 1,32,4.0,4.0,Mumbai Local Train
+71,Neral,19.0274308,73.3184369,NRL,Central 1,33,4.0,4.0,Mumbai Local Train
+72,Bhivpuri Road,18.9705491,73.3314374,BVS,Central 1,34,7.0,7.0,Mumbai Local Train
+73,Karjat,18.9099653,73.3209629,KJT/S,Central 1,35,7.0,9.0,Mumbai Local Train
+74,Palasdhari,18.884354,73.3208133,PDI,Central 1,36,3.0,5.0,Mumbai Local Train
+75,Kelavli,18.8453794,73.3189535,KLY,Central 1,37,5.0,7.0,Mumbai Local Train
+76,Dolavli,18.8335875,73.3202705,DLV,Central 1,38,1.0,3.0,Mumbai Local Train
+77,Lowjee,18.8091983,73.3354205,LWJ,Central 1,39,3.0,4.0,Mumbai Local Train
+78,Khopoli,18.7885196,73.3460412,KP,Central 1,40,3.0,6.0,Mumbai Local Train
+79,Mumbai CSMT,18.9404925,72.8357856,CSMT/ST,Central 2,1,0.0,0.0,Mumbai Local Train
+80,Masjid,18.9522949,72.8381771,MSD,Central 2,2,1.0,3.0,Mumbai Local Train
+81,Sandhurst Road,18.9609243,72.8393719,SNRD,Central 2,3,1.0,2.0,Mumbai Local Train
+82,Byculla,18.9766219,72.8327936,BY,Central 2,4,2.0,3.0,Mumbai Local Train
+83,Chinchpokli,18.9871984,72.8326716,CHG,Central 2,5,1.0,2.0,Mumbai Local Train
+84,Currey Road,18.9945514,72.8328707,CRD,Central 2,6,1.0,2.0,Mumbai Local Train
+85,Parel,19.0094817,72.8376614,PR,Central 2,7,2.0,3.0,Mumbai Local Train
+86,Dadar,19.0177342,72.8437523,D/DR/DDR,Central 2,8,1.0,3.0,Mumbai Local Train
+87,Matunga,19.0274356,72.8501467,MTN,Central 2,9,1.0,3.0,Mumbai Local Train
+88,Sion,19.0465213,72.8632834,SIN,Central 2,10,1.0,4.0,Mumbai Local Train
+89,Kurla,19.06528266382214,72.87923190585366,C/CH,Central 2,11,1.0,4.0,Mumbai Local Train
+90,Vidyavihar,19.0795422,72.8971169,VVH,Central 2,12,2.0,3.0,Mumbai Local Train
+91,Ghatkopar,19.0856928,72.9083668,G,Central 2,13,2.0,3.0,Mumbai Local Train
+92,Vikhroli,19.1114795,72.928021,VK,Central 2,14,4.0,5.0,Mumbai Local Train
+93,Kanjur Marg,19.1296868,72.9283701,KJMG,Central 2,15,2.0,3.0,Mumbai Local Train
+94,Bhandup,19.1438684,72.9384327,BND,Central 2,16,2.0,3.0,Mumbai Local Train
+95,Nahur,19.1550738,72.9469187,NHU,Central 2,17,1.0,3.0,Mumbai Local Train
+96,Mulund,19.1721762,72.9562383,MLND,Central 2,18,2.0,3.0,Mumbai Local Train
+97,Thane,19.186483,72.9757664,TNA,Central 2,19,2.0,4.0,Mumbai Local Train
+98,Kalva,19.1952243,72.9963331,KLVA,Central 2,20,2.0,4.0,Mumbai Local Train
+99,Mumbra,19.1899425,73.0230752,MBQ,Central 2,21,3.0,6.0,Mumbai Local Train
+100,Diva Junction,19.1887564,73.0414169,DIVA,Central 2,22,3.0,4.0,Mumbai Local Train
+101,Kopar,19.212423,73.078865,KOPR,Central 2,23,4.0,5.0,Mumbai Local Train
+102,Dombivli,19.2180493,73.0861355,DI,Central 2,24,1.0,3.0,Mumbai Local Train
+103,Thakurli,19.2255622,73.0968165,THK,Central 2,25,1.0,3.0,Mumbai Local Train
+104,Kalyan Junction,19.2358216,73.1308101,KYN,Central 2,26,3.0,6.0,Mumbai Local Train
+105,Shahad,19.2435448,73.1580817,SHAD,Central 2,27,3.0,5.0,Mumbai Local Train
+106,Ambivli,19.267645,73.1718625,ABY,Central 2,28,2.0,3.0,Mumbai Local Train
+107,Titwala,19.2963414,73.2032791,TLA,Central 2,29,6.0,5.0,Mumbai Local Train
+108,Khadavli,19.356724,73.2190375,KDV,Central 2,30,7.0,8.0,Mumbai Local Train
+109,Vasind,19.4065089,73.2674683,VSD,Central 2,31,8.0,8.0,Mumbai Local Train
+110,Asangaon,19.4399615,73.3081462,ASO,Central 2,32,6.0,6.0,Mumbai Local Train
+111,Atgaon,19.5028985,73.3287332,ATG,Central 2,33,9.0,9.0,Mumbai Local Train
+112,Thansit Cabin,19.5502698,73.352282,THS,Central 2,34,7.0,7.0,Mumbai Local Train
+113,Khardi,19.5802161,73.3938248,KE,Central 2,35,5.0,5.0,Mumbai Local Train
+114,Umbermali,19.628555,73.4230708,OMB,Central 2,36,6.0,6.0,Mumbai Local Train
+115,Kasara,19.6483202,73.4730493,KSRA,Central 2,37,12.0,12.0,Mumbai Local Train
+116,Dahanu Road,19.102196,72.8652361,DRD,Dahanu-Virar-Panvel,1,0.0,0.0,Mumbai Local Train
+117,Vangaon,19.8829908,72.7631658,VGN,Dahanu-Virar-Panvel,2,9.0,9.0,Mumbai Local Train
+118,Boisar,19.7984865,72.761452,BOR,Dahanu-Virar-Panvel,3,6.0,6.0,Mumbai Local Train
+119,Umroli,19.7557614,72.7604506,UOI,Dahanu-Virar-Panvel,4,6.0,6.0,Mumbai Local Train
+120,Palghar,19.6978882,72.7718888,PLG,Dahanu-Virar-Panvel,5,8.0,15.0,Mumbai Local Train
+121,Kelve Road,19.6240526,72.7911751,KLV,Dahanu-Virar-Panvel,6,6.0,8.0,Mumbai Local Train
+122,Saphale,19.5771316,72.8218812,SAH,Dahanu-Virar-Panvel,7,8.0,8.0,Mumbai Local Train
+123,Vaitarna,19.5186517,72.8499772,VTN,Dahanu-Virar-Panvel,8,8.0,9.0,Mumbai Local Train
+124,Virar,19.4553059,72.811816,VR,Dahanu-Virar-Panvel,9,4.0,6.0,Mumbai Local Train
+125,Nalla Sopara,19.4178997,72.8185693,NSP,Dahanu-Virar-Panvel,10,4.0,5.0,Mumbai Local Train
+126,Vasai Road,19.3826676,72.8320245,BSR/BS,Dahanu-Virar-Panvel,11,4.0,5.0,Mumbai Local Train
+127,Juichandra,19.3604641,72.8723218,JCNR,Dahanu-Virar-Panvel,12,4.0,6.0,Mumbai Local Train
+128,Kaman Road,19.3366555,72.9190837,KARD,Dahanu-Virar-Panvel,13,7.0,6.0,Mumbai Local Train
+129,Kharbhav,19.298321,72.9844677,KHBV,Dahanu-Virar-Panvel,14,7.0,7.0,Mumbai Local Train
+130,Bhivandi Road,19.2688735,73.0463121,BIRD,Dahanu-Virar-Panvel,15,8.0,10.0,Mumbai Local Train
+131,Kopar,19.212423,73.078865,KOPR,Dahanu-Virar-Panvel,16,8.0,12.0,Mumbai Local Train
+132,Dativali,19.1871047,73.0591806,DTVL,Dahanu-Virar-Panvel,17,3.0,8.0,Mumbai Local Train
+133,Nilaje,19.1544274,73.0803599,NIIJ,Dahanu-Virar-Panvel,18,4.0,11.0,Mumbai Local Train
+134,Taloje Panchanand,19.079148,73.0878581,TPND,Dahanu-Virar-Panvel,19,6.0,9.0,Mumbai Local Train
+135,Navade Road,19.0534481,73.1030908,NVRD,Dahanu-Virar-Panvel,20,4.0,7.0,Mumbai Local Train
+136,Kalamboli,19.0344708,73.1149672,KLMG,Dahanu-Virar-Panvel,21,2.0,3.0,Mumbai Local Train
+137,Panvel,18.9894239,73.122695,PNVL,Dahanu-Virar-Panvel,22,4.0,16.0,Mumbai Local Train
+138,Diva Junction,19.1887564,73.0414169,DIVA,Diva-Roha,1,0.0,0.0,Mumbai Local Train
+139,Dativali,19.1871047,73.0591806,DTVL,Diva-Roha,2,2.0,5.0,Mumbai Local Train
+140,Nilaje,19.1544274,73.0803599,NIIJ,Diva-Roha,3,4.0,11.0,Mumbai Local Train
+141,Taloje Panchanand,19.079148,73.0878581,TPND,Diva-Roha,4,6.0,9.0,Mumbai Local Train
+142,Navade Road,,,NVRD,Diva-Roha,5,4.0,7.0,Mumbai Local Train
+143,Kalamboli,19.0344708,73.1149672,KLMG,Diva-Roha,6,2.0,3.0,Mumbai Local Train
+144,Panvel,18.9894239,73.122695,PNVL,Diva-Roha,7,4.0,16.0,Mumbai Local Train
+145,Somatne,18.950646,73.14548,SMNE,Diva-Roha,8,7.0,10.0,Mumbai Local Train
+146,Rasayani,18.8940089,73.1516689,RSYI,Diva-Roha,9,6.0,7.0,Mumbai Local Train
+147,Apta,18.8637081,73.1532989,APTA,Diva-Roha,10,4.0,9.0,Mumbai Local Train
+148,Jite,18.8199622,73.0869492,JITE,Diva-Roha,11,10.0,5.0,Mumbai Local Train
+149,Hamarapur,18.784122,73.0792844,HPUR,Diva-Roha,12,5.0,14.0,Mumbai Local Train
+150,Pen,18.7355487,73.0867349,PEN,Diva-Roha,13,6.0,6.0,Mumbai Local Train
+151,Kasu,18.6413714,73.0795683,KASU,Diva-Roha,14,13.0,14.0,Mumbai Local Train
+152,Nagothane,18.5404785,73.1405566,NGTN,Diva-Roha,15,14.0,14.0,Mumbai Local Train
+153,Nidi,18.4741628,73.1075039,NIDI,Diva-Roha,16,5.0,10.0,Mumbai Local Train
+154,Roha,18.4467234,73.1243308,ROHA,Diva-Roha,17,10.0,20.0,Mumbai Local Train
+155,Mumbai CSMT,18.9404925,72.8357856,CSMT/ST,Harbour,1,0.0,0.0,Mumbai Local Train
+156,Masjid,18.9522949,72.8381771,MSD,Harbour,2,1.0,3.0,Mumbai Local Train
+157,Sandhurst Road,18.9609243,72.8393719,SNRD,Harbour,3,1.0,2.0,Mumbai Local Train
+158,Dockyard Road,18.9674767,72.8445477,DKRD,Harbour,4,2.0,2.0,Mumbai Local Train
+159,Reay Road,18.9775506,72.8441011,RRD,Harbour,5,1.0,2.0,Mumbai Local Train
+160,Cotton Green,18.9871866,72.8438965,CTGN,Harbour,6,1.0,2.0,Mumbai Local Train
+161,Sewri,18.9987796,72.8544218,SVE,Harbour,7,1.0,3.0,Mumbai Local Train
+162,Vadala Road,19.016142235295003,72.85893172176054,VDLR,Harbour,8,2.0,3.0,Mumbai Local Train
+163,Guru Tegh Bahadur Nagar,19.0366871,72.8707858,GTBN,Harbour,9,2.0,4.0,Mumbai Local Train
+164,Chuna Bhatti,19.0517703,72.8690974,CHF,Harbour,10,2.0,3.0,Mumbai Local Train
+165,Kurla,19.06528266382214,72.87923190585366,C/CH,Harbour,11,2.0,3.0,Mumbai Local Train
+166,Tilak Nagar,19.0657855,72.8904702,TKNG,Harbour,12,2.0,3.0,Mumbai Local Train
+167,Chembur,19.0612128,72.8975909,CMBR,Harbour,13,1.0,2.0,Mumbai Local Train
+168,Govandi,19.0553688,72.9150702,GV,Harbour,14,3.0,3.0,Mumbai Local Train
+169,Mankhurd,19.0485178,72.9323356,MNKD,Harbour,15,3.0,3.0,Mumbai Local Train
+170,Vashi,19.063278067450227,72.99879170605882,VSH,Harbour,16,8.0,8.0,Mumbai Local Train
+171,Sanpada,19.065972938769473,73.00954217374972,SNCR,Harbour,17,3.0,3.0,Mumbai Local Train
+172,Juinagar,19.05588289317986,73.01825170636249,JNJ,Harbour,18,5.0,5.0,Mumbai Local Train
+173,Nerul,19.03358411300107,73.01815902305852,NEU,Harbour,19,3.0,3.0,Mumbai Local Train
+174,Seawoods,19.0218192,73.0191588,SWDV,Harbour,20,3.0,3.0,Mumbai Local Train
+175,CBD Belapur,19.0190075,73.0391304,BEPR,Harbour,21,4.0,4.0,Mumbai Local Train
+176,Kharghar,19.0258415,73.0593001,KHAG,Harbour,22,4.0,4.0,Mumbai Local Train
+177,Mansarovar,19.0164338,73.0806552,MANR,Harbour,23,3.0,3.0,Mumbai Local Train
+178,Khandeshwar,19.0073498,73.0952827,KNDS,Harbour,24,3.0,3.0,Mumbai Local Train
+179,Panvel,18.9894239,73.122695,PNVL,Harbour,25,3.0,3.0,Mumbai Local Train
+180,Belapur Terminal,19.0205999,73.0402663,,Line 1,1,0.0,0.0,Navi Mumbai Metro
+181,RBI Colony,19.0229846,73.0479433,,Line 1,2,0.75,2.0,Navi Mumbai Metro
+182,Belpada,19.02527338410797,73.05494489956347,,Line 1,3,0.75,2.0,Navi Mumbai Metro
+183,Utsav Chowk,19.03261820580979,73.05902525216503,,Line 1,4,1.0,3.0,Navi Mumbai Metro
+184,Kendriya Vihar,19.037666785073764,73.06407790224856,,Line 1,5,0.75,2.0,Navi Mumbai Metro
+185,Khargar Village,19.04310926460939,73.07430030270542,,Line 1,6,1.5,4.0,Navi Mumbai Metro
+186,Central Park,19.05361298092806,73.07599784917372,,Line 1,7,1.0,3.0,Navi Mumbai Metro
+187,Pethpada,19.06382074999999,73.07736510000001,,Line 1,8,0.75,2.0,Navi Mumbai Metro
+188,Amandoot,19.0736469,73.08181435,,Line 1,9,1.0,3.0,Navi Mumbai Metro
+189,Pethali Taloja,19.074541832976752,73.0907708470688,,Line 1,10,1.0,3.0,Navi Mumbai Metro
+190,Pendhar,19.07223095,73.09780045,,Line 1,11,1.0,3.0,Navi Mumbai Metro
+191,Sant Gadge Maharaj Chowk,18.9830921,72.8285867,,Monorail,1,0.0,0.0,Mumbai Monorail
+192,Lower Parel,18.9931201,72.8314698,,Monorail,2,0.75,2.0,Mumbai Monorail
+193,Mint Colony,18.9945142,72.8433086,,Monorail,3,1.0,3.0,Mumbai Monorail
+194,Ambedkar Nagar,19.0015921,72.8442272,,Monorail,4,0.75,2.0,Mumbai Monorail
+195,Naigaon,19.0095393,72.8478709,,Monorail,5,1.0,3.0,Mumbai Monorail
+196,Vitthal Mandir,19.0162531,72.8522274,,Monorail,6,0.75,2.0,Mumbai Monorail
+197,Wadala Bridge,19.0174849,72.8593168,,Monorail,7,0.75,2.0,Mumbai Monorail
+198,Acharya Atre Nagar,19.0236472,72.8637994,,Monorail,8,1.0,3.0,Mumbai Monorail
+199,Antop Hill,19.0301805,72.8669504,,Monorail,9,1.0,3.0,Mumbai Monorail
+200,Guru Tegh Bahadur Nagar,19.0366871,72.8707858,,Monorail,10,0.75,2.0,Mumbai Monorail
+201,Wadala Depot,19.0388244,72.8740249,,Monorail,11,0.75,2.0,Mumbai Monorail
+202,Bhakti Park,19.028972,72.8775722,,Monorail,12,1.5,4.0,Mumbai Monorail
+203,Mysore Colony,19.0277168,72.8914397,,Monorail,13,1.5,4.0,Mumbai Monorail
+204,Bharat Petroleum,19.0352839,72.8955553,,Monorail,14,1.0,3.0,Mumbai Monorail
+205,Fertilizer Township,19.0438776,72.893456,,Monorail,15,0.75,2.0,Mumbai Monorail
+206,VNP & RC Marg Junction,19.0526419,72.8942789,,Monorail,16,0.75,2.0,Mumbai Monorail
+207,Chembur,19.0612128,72.8975909,,Monorail,17,1.0,3.0,Mumbai Monorail
+208,Uran City,18.8784186,72.9525001,,Nerul-Uran Line,1,0.0,0.0,Mumbai Local Train
+209,Dronagiri,18.8813327,72.9647315,,Nerul-Uran Line,2,4.0,4.0,Mumbai Local Train
+210,Nhava Sheva,18.898061,72.9877967,,Nerul-Uran Line,3,5.0,3.0,Mumbai Local Train
+211,Ranjanpada,18.9092584,73.0158486,,Nerul-Uran Line,4,7.0,3.0,Mumbai Local Train
+212,Ghavan,18.9389423,73.0178938,,Nerul-Uran Line,5,8.0,4.0,Mumbai Local Train
+213,Kharkopar,18.959900349548818,73.01413699689053,KARP,Nerul-Uran Line,6,8.0,4.0,Mumbai Local Train
+214,Baman-Dongri,18.975157538107773,73.02438470504964,BMNDG,Nerul-Uran Line,7,4.0,4.0,Mumbai Local Train
+215,Targhar,18.9899541,73.0343157,,Nerul-Uran Line,8,4.0,3.0,Mumbai Local Train
+216,Seawoods,19.0218192,73.0191588,SWDV,Nerul-Uran Line,9,5.0,6.0,Mumbai Local Train
+217,Nerul,19.03358411300107,73.01815902305852,NEU,Nerul-Uran Line,10,3.0,4.0,Mumbai Local Train
+218,Dahisar (East) [Line 7],19.2506981,72.8666664,,Red Line (Line 7),1,0.0,0.0,Mumbai Metro
+219,Ovaripada,19.2431487,72.8641377,,Red Line (Line 7),2,1.0,2.0,Mumbai Metro
+220,Rashtriya Udyan,19.2348129,72.8630608,,Red Line (Line 7),3,1.0,2.0,Mumbai Metro
+221,Devipada,19.2240357,72.8643251,,Red Line (Line 7),4,1.5,3.0,Mumbai Metro
+222,Magathane,19.2167968,72.8668012,,Red Line (Line 7),5,1.0,2.0,Mumbai Metro
+223,Poisar,19.2035171,72.8631041,,Red Line (Line 7),6,1.0,2.0,Mumbai Metro
+224,Akurli,19.1981585,72.8604905,,Red Line (Line 7),7,1.0,2.0,Mumbai Metro
+225,Kurar,19.1872999,72.8584547,,Red Line (Line 7),8,1.5,3.0,Mumbai Metro
+226,Dindoshi,19.1797579,72.8582976,,Red Line (Line 7),9,1.0,2.0,Mumbai Metro
+227,Aarey,19.1693242,72.8587918,,Red Line (Line 7),10,1.5,3.0,Mumbai Metro
+228,Goregaon (East),19.1524492,72.8565966,,Red Line (Line 7),11,1.5,3.0,Mumbai Metro
+229,Jogeshwari (East),19.1429455,72.855185,,Red Line (Line 7),12,1.0,2.0,Mumbai Metro
+230,Mogra,19.1284364,72.8554558,,Red Line (Line 7),13,1.0,2.0,Mumbai Metro
+231,Gundavali,19.1145125,72.8551556,,Red Line (Line 7),14,1.5,3.0,Mumbai Metro
+232,Thane,19.186483,72.9757664,TNA,Trans Harbour,1,0.0,0.0,Mumbai Local Train
+233,Digha Gaon,19.180800997327868,72.99442850634698,,Trans Harbour,2,5.0,5.5,Mumbai Local Train
+234,Airoli,19.15852486400738,72.9994019896676,AIRL,Trans Harbour,3,8.0,8.0,Mumbai Local Train
+235,Rabale,19.13663576182148,73.00278230963555,RABE,Trans Harbour,4,3.0,3.0,Mumbai Local Train
+236,Ghansoli,19.11631148969089,73.00701965180794,GNSL,Trans Harbour,5,3.0,3.0,Mumbai Local Train
+237,Koparkhairne,19.103243448308397,73.01131089305164,KPHN,Trans Harbour,6,3.0,3.0,Mumbai Local Train
+238,Turbhe,19.076136825451417,73.01772338482034,TUH,Trans Harbour,7,4.0,4.0,Mumbai Local Train
+239,Juinagar,19.05588289317986,73.01825170636249,JNJ,Trans Harbour,8,5.0,5.0,Mumbai Local Train
+240,Nerul,19.03358411300107,73.01815902305852,NEU,Trans Harbour,9,3.0,3.0,Mumbai Local Train
+241,Seawoods,19.0218192,73.0191588,SWDV,Trans Harbour,10,3.0,3.0,Mumbai Local Train
+242,CBD Belapur,19.0190075,73.0391304,BEPR,Trans Harbour,11,4.0,4.0,Mumbai Local Train
+243,Kharghar,19.0258415,73.0593001,KHAG,Trans Harbour,12,4.0,4.0,Mumbai Local Train
+244,Mansarovar,19.0164338,73.0806552,MANR,Trans Harbour,13,3.0,3.0,Mumbai Local Train
+245,Khandeshwar,19.0073498,73.0952827,KNDS,Trans Harbour,14,3.0,3.0,Mumbai Local Train
+246,Panvel,18.9894239,73.122695,PNVL,Trans Harbour,15,3.0,3.0,Mumbai Local Train
+247,Churchgate,18.9354797,72.8269394,CCG,Western,1,0.0,0.0,Mumbai Local Train
+248,Marine Lines,18.945764,72.8237193,MEL,Western,2,1.0,3.0,Mumbai Local Train
+249,Charni Road,18.9518437,72.8182401,CYR,Western,3,1.0,2.0,Mumbai Local Train
+250,Grant Road,18.9633549,72.8158261,GTR,Western,4,1.0,3.0,Mumbai Local Train
+251,Mumbai Central,18.9695855,72.8193152,MMCT,Western,5,1.0,2.0,Mumbai Local Train
+252,Mahalaxmi,18.979467,72.8254006,MX,Western,6,1.0,3.0,Mumbai Local Train
+253,Lower Parel,18.99568,72.8302756,PL,Western,7,2.0,3.0,Mumbai Local Train
+254,Prabhadevi,19.0074717,72.8358965,PBHD,Western,8,1.0,3.0,Mumbai Local Train
+255,Dadar,19.0177342,72.8437523,D/DR/DDR,Western,9,1.0,2.0,Mumbai Local Train
+256,Matunga Road,19.0278149,72.8466813,MRU,Western,10,2.0,2.0,Mumbai Local Train
+257,Mahim Junction,19.0406634,72.8466038,MM,Western,11,1.0,3.0,Mumbai Local Train
+258,Bandra,19.0549792,72.8402203,B/BA,Western,12,2.0,4.0,Mumbai Local Train
+259,Khar Road,19.0682411,72.8400412,KHAR,Western,13,2.0,3.0,Mumbai Local Train
+260,Santa Cruz,19.0815223,72.8417565,STC,Western,14,1.0,2.0,Mumbai Local Train
+261,Vile Parle,19.0999098,72.8440038,VLP,Western,15,2.0,3.0,Mumbai Local Train
+262,Andheri,19.1196976,72.8464205,A/AD/ADH,Western,16,2.0,5.0,Mumbai Local Train
+263,Jogeshwari (Western Line),19.1361144,72.848936,JOS,Western,17,2.0,3.0,Mumbai Local Train
+264,Ram Mandir,19.151023,72.8501467,RMAR,Western,18,2.0,3.0,Mumbai Local Train
+265,Goregaon,19.1648688,72.8495492,GMN,Western,19,3.0,2.0,Mumbai Local Train
+266,Malad,19.1867193,72.8485884,MDD,Western,20,2.0,4.0,Mumbai Local Train
+267,Kandivali,19.2041136,72.8517376,KLE,Western,21,1.0,3.0,Mumbai Local Train
+268,Borivali,19.229068,72.8573628,BO/BVI,Western,22,3.0,6.0,Mumbai Local Train
+269,Dahisar,19.2493572,72.8596302,DIC,Western,23,2.0,5.0,Mumbai Local Train
+270,Mira Road,19.2816975,72.8560676,MIRA,Western,24,3.0,5.0,Mumbai Local Train
+271,Bhayandar,19.3101847,72.8526988,BY,Western,25,3.0,5.0,Mumbai Local Train
+272,Naigaon,19.3510925,72.8465229,NIG,Western,26,6.0,6.0,Mumbai Local Train
+273,Vasai Road,19.3826676,72.8320245,BSR/BS,Western,27,4.0,5.0,Mumbai Local Train
+274,Nalla Sopara,19.4178997,72.8185693,NSP,Western,28,4.0,5.0,Mumbai Local Train
+275,Virar,19.4553059,72.811816,VR,Western,29,4.0,6.0,Mumbai Local Train
+276,Andheri (West),19.1291337,72.8314307,,Yellow Line (Line 2A),1,0.0,0.0,Mumbai Metro
+277,Lower Oshiwara,19.1406979,72.8317139,,Yellow Line (Line 2A),2,1.5,3.0,Mumbai Metro
+278,Oshiwara,19.1460351,72.833952,,Yellow Line (Line 2A),3,1.0,2.0,Mumbai Metro
+279,Goregaon (West),19.1530241,72.8356664,,Yellow Line (Line 2A),4,1.5,3.0,Mumbai Metro
+280,Bangur Nagar,19.1624723,72.8348708,,Yellow Line (Line 2A),5,1.0,2.0,Mumbai Metro
+281,Lower Malad,19.1730984,72.8364801,,Yellow Line (Line 2A),6,1.0,2.0,Mumbai Metro
+282,Malad (West),19.1852851,72.8358611,,Yellow Line (Line 2A),7,1.5,3.0,Mumbai Metro
+283,Valnai Meeth,19.1968293,72.8337752,,Yellow Line (Line 2A),8,1.0,2.0,Mumbai Metro
+284,Dahanukarwadi,19.2062315,72.8348068,,Yellow Line (Line 2A),9,1.0,2.0,Mumbai Metro
+285,Kandivali (West),19.2140036,72.8373054,,Yellow Line (Line 2A),10,1.0,2.0,Mumbai Metro
+286,Shimpoli,19.2228332,72.8409432,,Yellow Line (Line 2A),11,1.0,2.0,Mumbai Metro
+287,Borivali (West),19.2313925,72.8408607,,Yellow Line (Line 2A),12,1.0,2.0,Mumbai Metro
+288,Eksar,19.2403773,72.8434456,,Yellow Line (Line 2A),13,1.0,2.0,Mumbai Metro
+289,Mandapeshwar,19.2495856,72.8458001,,Yellow Line (Line 2A),14,1.0,2.0,Mumbai Metro
+290,Kandarpada,19.2566337,72.850504,,Yellow Line (Line 2A),15,1.0,2.0,Mumbai Metro
+291,Anand Nagar,19.2572087,72.8663486,,Yellow Line (Line 2A),16,1.0,2.0,Mumbai Metro
+292,Dahisar (East),19.2517331,72.8673322,,Yellow Line (Line 2A),17,1.5,3.0,Mumbai Metro

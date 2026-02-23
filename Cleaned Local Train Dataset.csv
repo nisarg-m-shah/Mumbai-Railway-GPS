@@ -1,0 +1,203 @@
+,Station,Station Code,Line,Sequence,Distance From Previous of the Line,Time taken From Previous of the Line
+0,Churchgate,CCG,Western,1,0.0,0.0
+1,Marine Lines,MEL,Western,2,1.0,3.0
+2,Charni Road,CYR,Western,3,1.0,2.0
+3,Grant Road,GTR,Western,4,1.0,3.0
+4,Mumbai Central,MMCT,Western,5,1.0,2.0
+5,Mahalakshmi,MX,Western,6,1.0,3.0
+6,Lower Parel,PL,Western,7,2.0,3.0
+7,Prabhadevi,PBHD,Western,8,1.0,3.0
+8,Dadar,D/DR/DDR,Western,9,1.0,2.0
+9,Matunga Road,MRU,Western,10,2.0,2.0
+10,Mahim Jn,MM,Western,11,1.0,3.0
+11,Bandra,B/BA,Western,12,2.0,4.0
+12,Khar Road,KHAR,Western,13,2.0,3.0
+13,Santacruz,STC,Western,14,1.0,2.0
+14,Vile Parle,VLP,Western,15,2.0,3.0
+15,Andheri,A/AD/ADH,Western,16,2.0,5.0
+16,Jogeshwari,JOS,Western,17,2.0,3.0
+17,Ram Mandir,RMAR,Western,18,2.0,3.0
+18,Goregaon,GMN,Western,19,3.0,2.0
+19,Malad,MDD,Western,20,2.0,4.0
+20,Kandivali,KLE,Western,21,1.0,3.0
+21,Borivali,BO/BVI,Western,22,3.0,6.0
+22,Dahisar,DIC,Western,23,2.0,5.0
+23,Mira Road,MIRA,Western,24,3.0,5.0
+24,Bhayander,BY,Western,25,3.0,5.0
+25,Naigaon,NIG,Western,26,6.0,6.0
+26,Vasai Road,BSR/BS,Western,27,4.0,5.0
+27,Nalla Sopara,NSP,Western,28,4.0,5.0
+28,Virar,VR,Western,29,4.0,6.0
+29,Vaitarna,VTN,Western,30,8.0,9.0
+30,Saphale,SAH,Western,31,8.0,8.0
+31,Kelve Road,KLV,Western,32,6.0,8.0
+32,Palghar,PLG,Western,33,8.0,15.0
+33,Umroli Road,UOI,Western,34,6.0,6.0
+34,Boisar,BOR,Western,35,6.0,6.0
+35,Vangaon,VGN,Western,36,9.0,9.0
+36,Dahanu Road,DRD,Western,37,12.0,13.0
+37,CSMT,CSMT/ST,Central 1,1,0.0,0.0
+38,Masjid,MSD,Central 1,2,1.0,3.0
+39,Sandhurst Road,SNRD,Central 1,3,1.0,2.0
+40,Byculla,BY,Central 1,4,2.0,3.0
+41,Chinchpokli,CHG,Central 1,5,1.0,2.0
+42,Currey Road,CRD,Central 1,6,1.0,2.0
+43,Parel,PR,Central 1,7,2.0,3.0
+44,Dadar,D/DR/DDR,Central 1,8,1.0,3.0
+45,Matunga,MTN,Central 1,9,1.0,3.0
+46,Sion,SIN,Central 1,10,1.0,4.0
+47,Kurla,C/CH,Central 1,11,1.0,4.0
+48,Vidhyavihar,VVH,Central 1,12,2.0,3.0
+49,Ghatkopar,G,Central 1,13,2.0,3.0
+50,Vikhroli,VK,Central 1,14,4.0,5.0
+51,Kanjur Marg,KJMG,Central 1,15,2.0,3.0
+52,Bhandup,BND,Central 1,16,2.0,3.0
+53,Nahur,NHU,Central 1,17,1.0,3.0
+54,Mulund,MLND,Central 1,18,2.0,3.0
+55,Thane,TNA,Central 1,19,2.0,4.0
+56,Kalva,KLVA,Central 1,20,2.0,4.0
+57,Mumbra,MBQ,Central 1,21,3.0,6.0
+58,Diva Jn,DIVA,Central 1,22,3.0,4.0
+59,Kopar,KOPR,Central 1,23,4.0,5.0
+60,Dombivli,DI,Central 1,24,1.0,3.0
+61,Thakurli,THK,Central 1,25,1.0,3.0
+62,Kalyan,KYN,Central 1,26,3.0,6.0
+63,Vithalwadi,VLDI,Central 1,27,2.0,5.0
+64,Ulhas Nagar,ULNR,Central 1,28,1.0,3.0
+65,Ambernath,ABH,Central 1,29,3.0,6.0
+66,Badalpur,BUD,Central 1,30,7.0,8.0
+67,Vangani,VGI,Central 1,31,11.0,9.0
+68,Shelu,SHLU,Central 1,32,4.0,4.0
+69,Neral,NRL,Central 1,33,4.0,4.0
+70,Bhivpuri Road,BVS,Central 1,34,7.0,7.0
+71,Karjat,KJT/S,Central 1,35,7.0,9.0
+72,Palasdhari,PDI,Central 1,36,3.0,5.0
+73,Kelavli,KLY,Central 1,37,5.0,7.0
+74,Dolavli,DLV,Central 1,38,1.0,3.0
+75,Lowjee,LWJ,Central 1,39,3.0,4.0
+76,Khopoli,KP,Central 1,40,3.0,6.0
+77,CSMT,CSMT/ST,Central 2,1,0.0,0.0
+78,Masjid,MSD,Central 2,2,1.0,3.0
+79,Sandhurst Road,SNRD,Central 2,3,1.0,2.0
+80,Byculla,BY,Central 2,4,2.0,3.0
+81,Chinchpokli,CHG,Central 2,5,1.0,2.0
+82,Currey Road,CRD,Central 2,6,1.0,2.0
+83,Parel,PR,Central 2,7,2.0,3.0
+84,Dadar,D/DR/DDR,Central 2,8,1.0,3.0
+85,Matunga,MTN,Central 2,9,1.0,3.0
+86,Sion,SIN,Central 2,10,1.0,4.0
+87,Kurla,C/CH,Central 2,11,1.0,4.0
+88,Vidhyavihar,VVH,Central 2,12,2.0,3.0
+89,Ghatkopar,G,Central 2,13,2.0,3.0
+90,Vikhroli,VK,Central 2,14,4.0,5.0
+91,Kanjur Marg,KJMG,Central 2,15,2.0,3.0
+92,Bhandup,BND,Central 2,16,2.0,3.0
+93,Nahur,NHU,Central 2,17,1.0,3.0
+94,Mulund,MLND,Central 2,18,2.0,3.0
+95,Thane,TNA,Central 2,19,2.0,4.0
+96,Kalva,KLVA,Central 2,20,2.0,4.0
+97,Mumbra,MBQ,Central 2,21,3.0,6.0
+98,Diva Jn,DIVA,Central 2,22,3.0,4.0
+99,Kopar,KOPR,Central 2,23,4.0,5.0
+100,Dombivli,DI,Central 2,24,1.0,3.0
+101,Thakurli,THK,Central 2,25,1.0,3.0
+102,Kalyan,KYN,Central 2,26,3.0,6.0
+103,Shahad,SHAD,Central 2,27,3.0,5.0
+104,Ambivli,ABY,Central 2,28,2.0,3.0
+105,Titwala,TLA,Central 2,29,6.0,5.0
+106,Khadavli,KDV,Central 2,30,7.0,8.0
+107,Vasind,VSD,Central 2,31,8.0,8.0
+108,Asangaon,ASO,Central 2,32,6.0,6.0
+109,Atagaon,ATG,Central 2,33,9.0,9.0
+110,Thansit,THS,Central 2,34,7.0,7.0
+111,Khardi,KE,Central 2,35,5.0,5.0
+112,Umbermali,OMB,Central 2,36,6.0,6.0
+113,Kasara,KSRA,Central 2,37,12.0,12.0
+114,CSMT,CSMT/ST,Harbour,1,0.0,0.0
+115,Masjid,MSD,Harbour,2,1.0,3.0
+116,Sandhurst Road,SNRD,Harbour,3,1.0,2.0
+117,Dockyarad Road,DKRD,Harbour,4,2.0,2.0
+118,Reay Road,RRD,Harbour,5,1.0,2.0
+119,Cotton Green,CTGN,Harbour,6,1.0,2.0
+120,Sewri,SVE,Harbour,7,1.0,3.0
+121,Vadala Road,VDLR,Harbour,8,2.0,3.0
+122,GTB Nagar,GTBN,Harbour,9,2.0,4.0
+123,Chunabhatti,CHF,Harbour,10,2.0,3.0
+124,Kurla,C/CH,Harbour,11,2.0,3.0
+125,Tilaknagar,TKNG,Harbour,12,2.0,3.0
+126,Chembur,CMBR,Harbour,13,1.0,2.0
+127,Govandi,GV,Harbour,14,3.0,3.0
+128,Mankhurd,MNKD,Harbour,15,3.0,3.0
+129,Vashi,VSH,Harbour,16,8.0,8.0
+130,Sanpada,SNCR,Harbour,17,3.0,3.0
+131,Juinagar,JNJ,Harbour,18,5.0,5.0
+132,Nerul,NEU,Harbour,19,3.0,3.0
+133,Seawood Darave,SWDV,Harbour,20,3.0,3.0
+134,Belapur CBD,BEPR,Harbour,21,4.0,4.0
+135,Kharghar,KHAG,Harbour,22,4.0,4.0
+136,Mansarovar,MANR,Harbour,23,3.0,3.0
+137,Khandeshwar,KNDS,Harbour,24,3.0,3.0
+138,Panvel,PNVL,Harbour,25,3.0,3.0
+139,Thane,TNA,Trans Harbour,1,0.0,0.0
+140,Airoli,AIRL,Trans Harbour,2,8.0,8.0
+141,Rabale,RABE,Trans Harbour,3,3.0,3.0
+142,Ghansoli,GNSL,Trans Harbour,4,3.0,3.0
+143,Koparkhairane,KPHN,Trans Harbour,5,3.0,3.0
+144,Turbhe,TUH,Trans Harbour,6,4.0,4.0
+145,Juinagar,JNJ,Trans Harbour,7,5.0,5.0
+146,Nerul,NEU,Trans Harbour,8,3.0,3.0
+147,Seawood Darave,SWDV,Trans Harbour,9,3.0,3.0
+148,Belapur CBD,BEPR,Trans Harbour,10,4.0,4.0
+149,Kharghar,KHAG,Trans Harbour,11,4.0,4.0
+150,Mansarovar,MANR,Trans Harbour,12,3.0,3.0
+151,Khandeshwar,KNDS,Trans Harbour,13,3.0,3.0
+152,Panvel,PNVL,Trans Harbour,14,3.0,3.0
+153,Nerul,NEU,Uran,1,0.0,0.0
+154,Seawood Darave,SWDV,Uran,2,3.0,3.0
+155,Belapur CBD,BEPR,Uran,3,4.0,4.0
+156,Bamandongri,BMNDG,Uran,4,9.0,12.0
+157,Kharkopar,KARP,Uran,5,3.0,4.0
+158,Diva Jn,DIVA,Diva-Roha,1,0.0,0.0
+159,Dativali,DTVL,Diva-Roha,2,2.0,5.0
+160,Nilje,NIIJ,Diva-Roha,3,4.0,11.0
+161,Taloja Panchanand,TPND,Diva-Roha,4,6.0,9.0
+162,Navade Road,NVRD,Diva-Roha,5,4.0,7.0
+163,Kalamboli,KLMG,Diva-Roha,6,2.0,3.0
+164,Panvel,PNVL,Diva-Roha,7,4.0,16.0
+165,Somtane,SMNE,Diva-Roha,8,7.0,10.0
+166,Rasayani,RSYI,Diva-Roha,9,6.0,7.0
+167,Apta,APTA,Diva-Roha,10,4.0,9.0
+168,Jite,JITE,Diva-Roha,11,10.0,5.0
+169,Hamarapur,HPUR,Diva-Roha,12,5.0,14.0
+170,Pen,PEN,Diva-Roha,13,6.0,6.0
+171,Kasu,KASU,Diva-Roha,14,13.0,14.0
+172,Nagothane,NGTN,Diva-Roha,15,14.0,14.0
+173,Nidi,NIDI,Diva-Roha,16,5.0,10.0
+174,Roha,ROHA,Diva-Roha,17,10.0,20.0
+175,Dahanu Road,DRD,Dahanu-Virar-Panvel,1,0.0,0.0
+176,Vangaon,VGN,Dahanu-Virar-Panvel,2,9.0,9.0
+177,Boisar,BOR,Dahanu-Virar-Panvel,3,6.0,6.0
+178,Umroli Road,UOI,Dahanu-Virar-Panvel,4,6.0,6.0
+179,Palghar,PLG,Dahanu-Virar-Panvel,5,8.0,15.0
+180,Kelva Road,KLV,Dahanu-Virar-Panvel,6,6.0,8.0
+181,Saphale,SAH,Dahanu-Virar-Panvel,7,8.0,8.0
+182,Vaitarna,VTN,Dahanu-Virar-Panvel,8,8.0,9.0
+183,Virar,VR,Dahanu-Virar-Panvel,9,4.0,6.0
+184,Nalla Sopara,NSP,Dahanu-Virar-Panvel,10,4.0,5.0
+185,Vasai Road,BSR/BS,Dahanu-Virar-Panvel,11,4.0,5.0
+186,Juchandra Road,JCNR,Dahanu-Virar-Panvel,12,4.0,6.0
+187,Kaman Road,KARD,Dahanu-Virar-Panvel,13,7.0,6.0
+188,Kharbao,KHBV,Dahanu-Virar-Panvel,14,7.0,7.0
+189,Bhiwandi Road,BIRD,Dahanu-Virar-Panvel,15,8.0,10.0
+190,Kopar,KOPR,Dahanu-Virar-Panvel,16,8.0,12.0
+191,Dativali,DTVL,Dahanu-Virar-Panvel,17,3.0,8.0
+192,Nilje,NIIJ,Dahanu-Virar-Panvel,18,4.0,11.0
+193,Taloja Panchanand,TPND,Dahanu-Virar-Panvel,19,6.0,9.0
+194,Navade Road,NVRD,Dahanu-Virar-Panvel,20,4.0,7.0
+195,Kalamboli,KLMG,Dahanu-Virar-Panvel,21,2.0,3.0
+196,Panvel,PNVL,Dahanu-Virar-Panvel,22,4.0,16.0
+197,Neral,NRL,Neral-Matheran,1,0.0,0.0
+198,Jumapatti,JTT,Neral-Matheran,2,5.0,46.0
+199,Waterpipe,WTP,Neral-Matheran,3,6.0,46.0
+200,Aman Lodge,AMNA,Neral-Matheran,4,7.0,50.0
+201,Matheran,MAE,Neral-Matheran,5,2.0,18.0
