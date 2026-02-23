@@ -29,8 +29,17 @@ import networkx as nx
 import osmnx as ox
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import os
 
 warnings.filterwarnings("ignore")
+
+# Directory containing this script — used to resolve data files regardless of
+# the working directory the process was launched from.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+
+def _data_path(filename: str) -> str:
+    return os.path.join(_HERE, filename)
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # TIME MODEL CONSTANTS
@@ -89,7 +98,7 @@ class MumbaiData:
 
     def __init__(self):
         print("Loading road graph …")
-        self.G_road = ox.load_graphml("mumbai_graph.graphml")
+        self.G_road = ox.load_graphml(_data_path("mumbai_graph.graphml"))
 
         print("Loading train data …")
         self._load_trains()
@@ -102,7 +111,7 @@ class MumbaiData:
     # ── Train ──────────────────────────────────────────────────────────────
 
     def _load_trains(self):
-        df = pd.read_csv("Cleaned Local Train Dataset.csv")
+        df = pd.read_csv(_data_path("Cleaned Local Train Dataset.csv"))
         df["station_clean"] = df["Station"].apply(normalize)
 
         # Build rail graph with time weight
@@ -131,7 +140,7 @@ class MumbaiData:
         # (e.g. "Dadar" vs "Dadar Junction"), so we:
         #   1. Try exact match on normalized name  (fast path)
         #   2. Fall back to fuzzy difflib match    (handles typos, dropped words)
-        pois = pd.read_csv("railway_mumbai.csv")
+        pois = pd.read_csv(_data_path("railway_mumbai.csv"))
         pois["poi_clean"] = pois["name"].apply(normalize)
 
         rail_names = list(G_rail.nodes)
@@ -175,7 +184,7 @@ class MumbaiData:
     # ── Bus ───────────────────────────────────────────────────────────────
 
     def _load_buses(self):
-        df = pd.read_csv("Bus Dataset 3.csv")
+        df = pd.read_csv(_data_path("Bus Dataset 3.csv"))
         df = df.dropna(subset=["stop_lat", "stop_lon", "stop_id", "route_short_name"])
         df["stop_id"] = df["stop_id"].astype(str)
         self.bus_df = df
@@ -537,14 +546,19 @@ class MultimodalGraphBuilder:
         # ── Train ↔ Train same-station line penalty ──
         by_station = {}
         for tn, ta in train_nodes:
-            by_station.setdefault(ta.get("station",""), []).append(tn)
-        for sc, nodes in by_station.items():
-            for i in range(len(nodes)):
-                for j in range(i+1, len(nodes)):
-                    G.add_edge(nodes[i], nodes[j], weight=TRAIN_LINE_PENALTY,
-                               mode="walk", distance_km=0, seg_start=None, seg_end=None)
-                    G.add_edge(nodes[j], nodes[i], weight=TRAIN_LINE_PENALTY,
-                               mode="walk", distance_km=0, seg_start=None, seg_end=None)
+            by_station.setdefault(ta.get("station",""), []).append((tn, ta))
+        for sc, node_attrs in by_station.items():
+            for i in range(len(node_attrs)):
+                for j in range(i+1, len(node_attrs)):
+                    ni, ai = node_attrs[i]
+                    nj, aj = node_attrs[j]
+                    ci = (ai["lat"], ai["lon"]) if ai.get("lat") else None
+                    cj = (aj["lat"], aj["lon"]) if aj.get("lat") else None
+                    # These ARE walk legs (changing platform) with real coordinates
+                    G.add_edge(ni, nj, weight=TRAIN_LINE_PENALTY,
+                               mode="walk", distance_km=0, seg_start=ci, seg_end=cj)
+                    G.add_edge(nj, ni, weight=TRAIN_LINE_PENALTY,
+                               mode="walk", distance_km=0, seg_start=cj, seg_end=ci)
 
         # ── Cab option: start/end ↔ nearest transit nodes (combination only) ──
         # In combination mode the user CAN take a cab for any leg. We add cab-speed

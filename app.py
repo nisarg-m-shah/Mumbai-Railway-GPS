@@ -179,7 +179,7 @@ def render_route_steps(steps, data: MumbaiData):
 # MAP RENDERING
 # ──────────────────────────────────────────────────────────────────────────────
 
-def render_map(steps, start_coords, end_coords, G_road) -> io.BytesIO:
+def render_map(steps, start_coords, end_coords, G_road, data) -> io.BytesIO:
     """
     Render the route on the OSMnx road graph.
     - Crops the view to the route bounding box + padding (no more full-Mumbai view)
@@ -249,6 +249,47 @@ def render_map(steps, start_coords, end_coords, G_road) -> io.BytesIO:
                         color=color, linewidth=2, linestyle="--",
                         alpha=0.8, zorder=4)
 
+    # ── Mark every intermediate stop/station with a dot + label ─────────
+    # Collect one entry per unique stop coordinate to avoid duplicate labels
+    stop_labels = {}   # (lon, lat) -> label string
+    for step in steps:
+        mode  = step["mode"]
+        seg_s = step.get("seg_start")
+        seg_e = step.get("seg_end")
+
+        if mode in ("train", "bus"):
+            fn = step["from"]
+            tn = step["to"]
+            # from-node label
+            if seg_s and seg_s not in stop_labels:
+                stop_labels[seg_s] = friendly_node(fn, data)
+            # to-node label
+            if seg_e and seg_e not in stop_labels:
+                stop_labels[seg_e] = friendly_node(tn, data)
+
+    # Dot size and color by type
+    for (lat, lon), label in stop_labels.items():
+        is_train = any(
+            s["mode"] == "train" and (
+                s.get("seg_start") == (lat, lon) or s.get("seg_end") == (lat, lon)
+            )
+            for s in steps
+        )
+        dot_color = LOCAL_COLORS["train"] if is_train else LOCAL_COLORS["bus"]
+        ax.scatter(lon, lat, c=dot_color, s=60, zorder=7,
+                   edgecolors="white", linewidths=0.5)
+        ax.annotate(
+            label,
+            xy=(lon, lat),
+            xytext=(4, 4),
+            textcoords="offset points",
+            fontsize=5.5,
+            color="white",
+            alpha=0.85,
+            zorder=8,
+        )
+
+    # ── Start / End markers (drawn last so they sit on top) ──────────────
     ax.scatter(start_coords[1], start_coords[0],
                c="lime", s=400, zorder=10, marker="*")
     ax.scatter(end_coords[1], end_coords[0],
@@ -394,7 +435,7 @@ def main():
         st.subheader("🗺️ Route Map")
         with st.spinner("Rendering map…"):
             try:
-                buf = render_map(steps, start_coords, end_coords, data.G_road)
+                buf = render_map(steps, start_coords, end_coords, data.G_road, data)
                 st.image(buf, use_container_width=True,
                          caption="Gray=Walk · Red=Train · Blue=Bus · Gold=Cab")
             except Exception as e:
