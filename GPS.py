@@ -8,6 +8,7 @@ Modes:
   car               — Cab only
   earliest_arrival  — All modes, minimise total travel time
   least_interchange — All modes, minimise line/mode changes
+  public_transport  — All transit, walk-only access (no cab at all)
 Algorithm: Weighted shortest-path on unified MultiDiGraph (NetworkX)
 
 Required files (same directory):
@@ -43,6 +44,7 @@ WALK_MIN_PER_KM      = 12.0
 BUS_MIN_PER_KM       = 4.0
 CAR_MIN_PER_KM       = 3.0
 CAB_MIN_DIST_KM      = 1.0
+SNAP_RADIUS_KM       = 0.20  # within 200 m: zero-cost snap edge (no road graph)
 WALK_RADIUS_KM       = 1.0   # stations within this radius: walk edge (haversine)
 CAB_RADIUS_KM        = 8.0   # stations within this radius: cab edge (haversine)
                               # Covers ~8 km — enough to reach a better line
@@ -57,6 +59,7 @@ INTERCHANGE_PENALTY  = 20.0  # extra minutes added per mode/line change in least
 SYSTEMS_LOCAL_TRAIN = {"Mumbai Local Train"}
 SYSTEMS_METRO       = {"Mumbai Metro", "Navi Mumbai Metro", "Mumbai Monorail"}
 SYSTEMS_ALL         = SYSTEMS_LOCAL_TRAIN | SYSTEMS_METRO
+WALK_ONLY_MODES     = {"public_transport"}  # modes that forbid cab access edges
 
 # Lines that are ONE-WAY (ascending sequence only — no reverse edges)
 DIRECTIONAL_LINES = {"Yellow Line (Line 2A)", "Red Line (Line 7)"}
@@ -279,6 +282,14 @@ class MultimodalGraphBuilder:
             self._build_transfers(interchange_penalty=penalty)
             self._connect_endpoints_combination()
 
+        elif self.mode == "public_transport":
+            # All transit systems, walk-only first/last mile (no cab edges).
+            # Minimises cab/walk distance by simply not offering cab as an option.
+            self._build_train_layer(allowed_systems=SYSTEMS_ALL)
+            self._build_bus_layer()
+            self._build_transfers()
+            self._connect_endpoints_walk_only()
+
         else:
             raise ValueError(f"Unknown mode: {self.mode}")
 
@@ -289,7 +300,7 @@ class MultimodalGraphBuilder:
     def _build_car_only(self):
         s_lat, s_lon = self.start_latlon
         e_lat, e_lon = self.end_latlon
-        d_km, t = self._road_dist_and_time(s_lat, s_lon, e_lat, e_lon, CAR_MIN_PER_KM)
+        d_km, t = self._cab_dist_and_time(s_lat, s_lon, e_lat, e_lon)
         self.G_multi.add_edge("start", "end",
                               weight=t, distance_km=d_km, mode="car",
                               seg_start=(s_lat, s_lon), seg_end=(e_lat, e_lon))
@@ -349,16 +360,20 @@ class MultimodalGraphBuilder:
                            station=row_i1["Station Name"], line=line,
                            system=row_i1.get("System", ""))
 
+                # Resolve display mode from System column
+                sys_val   = str(row_i.get("System", ""))
+                edge_mode = SYSTEM_TO_MODE.get(sys_val, "train")
+
                 # Forward edge (ascending)
                 G.add_edge(node_i, node_i1,
-                           weight=t_fwd, mode="train",
+                           weight=t_fwd, mode=edge_mode,
                            distance_km=d_fwd, line=line,
                            seg_start=coords_i, seg_end=coords_i1)
 
                 if not is_directional:
                     # Reverse edge (descending): same time/distance
                     G.add_edge(node_i1, node_i,
-                               weight=t_fwd, mode="train",
+                               weight=t_fwd, mode=edge_mode,
                                distance_km=d_fwd, line=line,
                                seg_start=coords_i1, seg_end=coords_i)
 
@@ -412,7 +427,7 @@ class MultimodalGraphBuilder:
         """
         s_lat, s_lon = self.start_latlon
         e_lat, e_lon = self.end_latlon
-        all_items    = list(self.data.station_coords.items())
+        all_items = list(self.data.station_coords.items())
 
         for ep, lat, lon in [("start", s_lat, s_lon), ("end", e_lat, e_lon)]:
             for sc, (st_lat, st_lon) in all_items:
@@ -423,21 +438,35 @@ class MultimodalGraphBuilder:
                 h = haversine_km(lat, lon, st_lat, st_lon)
 
                 if h <= WALK_RADIUS_KM:
-                    # ── Walk zone: road-graph distance for accurate time ──
-                    d_km, walk_t = self._road_dist_and_time(
-                        lat, lon, st_lat, st_lon, WALK_MIN_PER_KM)
-                    if d_km == float("inf"):
-                        continue
-                    if ep == "start":
-                        self.G_multi.add_edge(
-                            "start", node, weight=walk_t, mode="walk",
-                            distance_km=d_km,
-                            seg_start=(lat, lon), seg_end=(st_lat, st_lon))
+                    if h <= SNAP_RADIUS_KM:
+                        # ── Snap zone (≤200 m): zero-cost edge, no road graph ──
+                        # Rail/metro stations have platform bridges so you can
+                        # always cross to the correct exit — treat as free.
+                        # Mark is_snap=True so the map renderer draws nothing.
+                        if ep == "start":
+                            self.G_multi.add_edge(
+                                "start", node, weight=0, mode="walk",
+                                distance_km=0, is_snap=True,
+                                seg_start=(lat, lon), seg_end=(st_lat, st_lon))
+                        else:
+                            self.G_multi.add_edge(
+                                node, "end", weight=0, mode="walk",
+                                distance_km=0, is_snap=True,
+                                seg_start=(st_lat, st_lon), seg_end=(lat, lon))
                     else:
-                        self.G_multi.add_edge(
-                            node, "end", weight=walk_t, mode="walk",
-                            distance_km=d_km,
-                            seg_start=(st_lat, st_lon), seg_end=(lat, lon))
+                        # ── Walk zone: haversine * ROAD_FACTOR for walk time ──
+                        d_km  = h * ROAD_FACTOR
+                        walk_t = d_km * WALK_MIN_PER_KM
+                        if ep == "start":
+                            self.G_multi.add_edge(
+                                "start", node, weight=walk_t, mode="walk",
+                                distance_km=d_km,
+                                seg_start=(lat, lon), seg_end=(st_lat, st_lon))
+                        else:
+                            self.G_multi.add_edge(
+                                node, "end", weight=walk_t, mode="walk",
+                                distance_km=d_km,
+                                seg_start=(st_lat, st_lon), seg_end=(lat, lon))
 
                 elif h <= CAB_RADIUS_KM:
                     # ── Cab zone: haversine x ROAD_FACTOR (no road-graph call) ──
@@ -566,10 +595,9 @@ class MultimodalGraphBuilder:
                 h = haversine_km(lat, lon, ba["lat"], ba["lon"])
 
                 if h <= WALK_RADIUS_KM:
-                    d_km, walk_t = self._road_dist_and_time(
-                        lat, lon, ba["lat"], ba["lon"], WALK_MIN_PER_KM)
-                    if d_km == float("inf"):
-                        continue
+                    # haversine * ROAD_FACTOR — no nearest_nodes call needed
+                    d_km   = h * ROAD_FACTOR
+                    walk_t = d_km * WALK_MIN_PER_KM
                     if ep == "start":
                         self.G_multi.add_edge(
                             "start", bn, weight=walk_t, mode="walk",
@@ -617,11 +645,14 @@ class MultimodalGraphBuilder:
                        if n.startswith("bus_")   and a.get("lat")]
 
         # ── Bus <-> Train walk transfers ──────────────────────────────────
+        # Use haversine directly (no road-graph call) — these pairs are
+        # <= MAX_TRANSFER_DIST_KM (0.5 km) apart so haversine is accurate
+        # enough, and avoids nearest_nodes which requires scikit-learn.
         for tn, ta in train_nodes:
             for bn, ba in bus_nodes:
-                if haversine_km(ta["lat"], ta["lon"], ba["lat"], ba["lon"]) <= MAX_TRANSFER_DIST_KM:
-                    d_km, t = self._road_dist_and_time(
-                        ta["lat"], ta["lon"], ba["lat"], ba["lon"], WALK_MIN_PER_KM)
+                d_km = haversine_km(ta["lat"], ta["lon"], ba["lat"], ba["lon"])
+                if d_km <= MAX_TRANSFER_DIST_KM:
+                    t = d_km * WALK_MIN_PER_KM
                     w = t + interchange_penalty
                     for src, dst, sc, dc in [
                         (tn, bn, (ta["lat"], ta["lon"]), (ba["lat"], ba["lon"])),
@@ -632,32 +663,102 @@ class MultimodalGraphBuilder:
                                    is_transfer=True)
 
         # ── Cab edges: transit<->transit within 20 km ─────────────────────
-        all_transit = train_nodes + bus_nodes
-        for i, (n_a, a_a) in enumerate(all_transit):
-            for n_b, a_b in all_transit[i+1:]:
-                h = haversine_km(a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
-                if h > 20.0:
-                    continue
-                d_km, cab_t = self._cab_dist_and_time(
-                    a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
-                if d_km < CAB_MIN_DIST_KM:
-                    continue
-                w = cab_t + interchange_penalty
-                for src, dst, sc, dc in [
-                    (n_a, n_b, (a_a["lat"], a_a["lon"]), (a_b["lat"], a_b["lon"])),
-                    (n_b, n_a, (a_b["lat"], a_b["lon"]), (a_a["lat"], a_a["lon"])),
-                ]:
-                    G.add_edge(src, dst, weight=w, mode="car",
-                               distance_km=d_km, seg_start=sc, seg_end=dc)
+        # Skipped entirely in public_transport mode (no cab allowed at all)
+        if self.mode != "public_transport":
+            all_transit = train_nodes + bus_nodes
+            for i, (n_a, a_a) in enumerate(all_transit):
+                for n_b, a_b in all_transit[i+1:]:
+                    h = haversine_km(a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
+                    if h > 20.0:
+                        continue
+                    d_km, cab_t = self._cab_dist_and_time(
+                        a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
+                    if d_km < CAB_MIN_DIST_KM:
+                        continue
+                    w = cab_t + interchange_penalty
+                    for src, dst, sc, dc in [
+                        (n_a, n_b, (a_a["lat"], a_a["lon"]), (a_b["lat"], a_b["lon"])),
+                        (n_b, n_a, (a_b["lat"], a_b["lon"]), (a_a["lat"], a_a["lon"])),
+                    ]:
+                        G.add_edge(src, dst, weight=w, mode="car",
+                                   distance_km=d_km, seg_start=sc, seg_end=dc)
 
-        # ── Direct start->end cab ─────────────────────────────────────────
+            # ── Direct start->end cab ─────────────────────────────────────
+            s_lat, s_lon = self.start_latlon
+            e_lat, e_lon = self.end_latlon
+            d_km, cab_t = self._cab_dist_and_time(s_lat, s_lon, e_lat, e_lon)
+            if d_km >= CAB_MIN_DIST_KM:
+                G.add_edge("start", "end", weight=cab_t, mode="car",
+                           distance_km=d_km,
+                           seg_start=(s_lat, s_lon), seg_end=(e_lat, e_lon))
+
+    def _connect_endpoints_walk_only(self):
+        """
+        Public-transport mode: connect start/end to ALL transit nodes within
+        WALK_RADIUS_KM (1.5 km) by walking only — no cab edges.
+
+        Rail/metro nodes within SNAP_RADIUS_KM (200 m) get a zero-cost snap
+        edge (platform bridge logic, same as _connect_endpoints_to_train).
+        Bus stops always use road-graph distance — no snap.
+        """
+        PUBLIC_WALK_RADIUS = 1.5
         s_lat, s_lon = self.start_latlon
         e_lat, e_lon = self.end_latlon
-        d_km, cab_t = self._cab_dist_and_time(s_lat, s_lon, e_lat, e_lon)
-        if d_km >= CAB_MIN_DIST_KM:
-            G.add_edge("start", "end", weight=cab_t, mode="car",
-                       distance_km=d_km,
-                       seg_start=(s_lat, s_lon), seg_end=(e_lat, e_lon))
+
+        transit_nodes = [
+            (n, a) for n, a in self.G_multi.nodes(data=True)
+            if (n.startswith("train_") or n.startswith("bus_"))
+            and a.get("lat") is not None
+        ]
+
+        for ep, lat, lon in [("start", s_lat, s_lon), ("end", e_lat, e_lon)]:
+            reachable = [
+                (n, a) for n, a in transit_nodes
+                if haversine_km(lat, lon, a["lat"], a["lon"]) <= PUBLIC_WALK_RADIUS
+            ]
+
+            if not reachable:
+                reachable = sorted(
+                    transit_nodes,
+                    key=lambda x: haversine_km(lat, lon, x[1]["lat"], x[1]["lon"])
+                )[:1]
+                if reachable:
+                    self.advisories.append(
+                        f"No transit within {PUBLIC_WALK_RADIUS} km of "
+                        f"{'start' if ep == 'start' else 'destination'} — "
+                        f"using nearest stop (may require a longer walk).")
+
+            for n, a in reachable:
+                h_node  = haversine_km(lat, lon, a["lat"], a["lon"])
+                is_rail = n.startswith("train_")
+
+                if is_rail and h_node <= SNAP_RADIUS_KM:
+                    # Rail/metro ≤200 m: zero-cost platform-bridge snap
+                    if ep == "start":
+                        self.G_multi.add_edge(
+                            "start", n, weight=0, mode="walk",
+                            distance_km=0, is_snap=True,
+                            seg_start=(lat, lon), seg_end=(a["lat"], a["lon"]))
+                    else:
+                        self.G_multi.add_edge(
+                            n, "end", weight=0, mode="walk",
+                            distance_km=0, is_snap=True,
+                            seg_start=(a["lat"], a["lon"]), seg_end=(lat, lon))
+                else:
+                    d_km, walk_t = self._road_dist_and_time(
+                        lat, lon, a["lat"], a["lon"], WALK_MIN_PER_KM)
+                    if d_km == float("inf"):
+                        continue
+                    if ep == "start":
+                        self.G_multi.add_edge(
+                            "start", n, weight=walk_t, mode="walk",
+                            distance_km=d_km,
+                            seg_start=(lat, lon), seg_end=(a["lat"], a["lon"]))
+                    else:
+                        self.G_multi.add_edge(
+                            n, "end", weight=walk_t, mode="walk",
+                            distance_km=d_km,
+                            seg_start=(a["lat"], a["lon"]), seg_end=(lat, lon))
 
     def _connect_endpoints_combination(self):
         self._connect_endpoints_to_train()
@@ -736,6 +837,7 @@ class Router:
                 "route":       attr.get("route", attr.get("line", "")),
                 "seg_start":   attr.get("seg_start"),
                 "seg_end":     attr.get("seg_end"),
+                "is_snap":     attr.get("is_snap", False),
             })
         return steps
 
@@ -745,10 +847,20 @@ class Router:
 # ──────────────────────────────────────────────────────────────────────────────
 
 MODE_COLORS = {
-    "walk":  "#aaaaaa",
-    "train": "#ff3333",
-    "bus":   "#1e90ff",
-    "car":   "#ffd700",
+    "walk":     "#aaaaaa",
+    "train":    "#ff3333",   # local train — red
+    "metro":    "#00e5c0",   # metro — teal/cyan
+    "monorail": "#ff9800",   # monorail — orange
+    "bus":      "#1e90ff",   # bus — blue
+    "car":      "#ffd700",   # cab — gold
+}
+
+# Map System column values -> display mode key
+SYSTEM_TO_MODE = {
+    "Mumbai Local Train":    "train",
+    "Mumbai Metro":          "metro",
+    "Navi Mumbai Metro":     "metro",
+    "Mumbai Monorail":       "monorail",
 }
 
 

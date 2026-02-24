@@ -11,6 +11,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
+import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -179,16 +180,35 @@ def load_data():
 def get_router(_data):
     return Router(_data)
 
+@st.cache_data(show_spinner=False)
+def load_landmarks():
+    """Load Mumbai Landmarks CSV and return sorted list of (label, lat, lon)."""
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Mumbai Landmarks.csv")
+    df = pd.read_csv(path)
+    df = df.dropna(subset=["latitude", "longitude", "name"])
+    df["latitude"]  = df["latitude"].astype(float)
+    df["longitude"] = df["longitude"].astype(float)
+    # Build display label: "Name (category)" but keep it concise
+    def make_label(row):
+        cat = str(row.get("category", "")).replace(":", " › ").replace("_", " ")
+        return f"{row['name']}"
+    df["label"] = df.apply(make_label, axis=1)
+    df = df.sort_values("name")
+    return df
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
-MODE_EMOJI  = {"walk": "🚶", "train": "🚆", "bus": "🚌", "car": "🚖"}
+MODE_EMOJI  = {"walk": "🚶", "train": "🚆", "metro": "🚇", "monorail": "🚝", "bus": "🚌", "car": "🚖"}
 MODE_HEX    = {
-    "train": "#ff3333",
-    "bus":   "#1e90ff",
-    "walk":  "#aaaaaa",
-    "car":   "#ffd700",
+    "train":    "#ff3333",   # local train — red
+    "metro":    "#00e5c0",   # metro — teal
+    "monorail": "#ff9800",   # monorail — orange
+    "bus":      "#1e90ff",   # bus — blue
+    "walk":     "#aaaaaa",   # walk — grey
+    "car":      "#ffd700",   # cab — gold
 }
 
 def friendly_node(node_id: str, data: MumbaiData) -> str:
@@ -265,6 +285,12 @@ def render_leg_card(leg, idx, data: MumbaiData):
     if mode == "train":
         route_label = f"<span class='leg-route'>🛤 {leg['route']}</span>"
         header_text = f"{emoji} Train"
+    elif mode == "metro":
+        route_label = f"<span class='leg-route'>🛤 {leg['route']}</span>"
+        header_text = f"{emoji} Metro"
+    elif mode == "monorail":
+        route_label = f"<span class='leg-route'>🛤 {leg['route']}</span>"
+        header_text = f"{emoji} Monorail"
     elif mode == "bus":
         route_label = f"<span class='leg-route'>🔢 Route {leg['route']}</span>"
         header_text = f"{emoji} Bus"
@@ -289,11 +315,7 @@ def render_leg_card(leg, idx, data: MumbaiData):
         stops_passed.append(friendly_node(s["to"], data))
 
     chips = ""
-    for i, sname in enumerate(stops_passed):
-        if i > 0 and i < len(stops_passed) - 1 and mode in ("train", "bus") and len(stops_passed) > 5:
-            if i == 1:
-                chips += f"<span style='color:{color};font-size:0.8rem;'>…{len(stops_passed)-2} stops…</span>"
-            continue
+    for sname in stops_passed:
         chips += (f"<span class='stop-chip' "
                   f"style='background:{stop_chip_color};color:{color};border:1px solid {color}55;'>"
                   f"{sname}</span>")
@@ -301,7 +323,7 @@ def render_leg_card(leg, idx, data: MumbaiData):
     walk_warn = ""
     if mode == "walk" and leg["distance_km"] >= 1.0:
         walk_warn = (f"<div class='walk-warn'>"
-                     f"⚠️ Walk distance {leg['distance_km']:.2f} km — consider a cab for this leg."
+                     f"⚠️ Walk distance {leg['distance_km']:.2f} km — this is a long walk."
                      f"</div>")
 
     card_html = f"""
@@ -343,10 +365,12 @@ def render_map(steps, start_coords, end_coords, G_road, data) -> io.BytesIO:
     min_lon, max_lon = min(all_lons) - PAD, max(all_lons) + PAD
 
     LOCAL_COLORS = {
-        "walk":  "#aaaaaa",
-        "train": "#ff3333",
-        "bus":   "#1e90ff",
-        "car":   "#ffd700",
+        "walk":     "#aaaaaa",
+        "train":    "#ff3333",
+        "metro":    "#00e5c0",
+        "monorail": "#ff9800",
+        "bus":      "#1e90ff",
+        "car":      "#ffd700",
     }
 
     fig, ax = ox.plot_graph(
@@ -364,22 +388,36 @@ def render_map(steps, start_coords, end_coords, G_road, data) -> io.BytesIO:
         if seg_s is None or seg_e is None:
             continue
 
-        if mode == "train":
+        if step.get("is_snap"):
+            # Zero-cost snap edge (train/metro station ≤200 m from endpoint).
+            # Platform bridges mean you can always reach the right exit — draw nothing.
+            continue
+
+        if mode in ("train", "metro", "monorail"):
+            # Rail: straight line between station coordinates
             ax.plot([seg_s[1], seg_e[1]], [seg_s[0], seg_e[0]],
                     color=color, linewidth=4, alpha=0.95,
                     solid_capstyle="round", zorder=5)
             ax.scatter(seg_s[1], seg_s[0], c=color, s=50, zorder=6)
             ax.scatter(seg_e[1], seg_e[0], c=color, s=50, zorder=6)
+
         else:
+            # Walk / bus / cab: use real road geometry
             try:
                 n1 = ox.distance.nearest_nodes(G_road, seg_s[1], seg_s[0])
                 n2 = ox.distance.nearest_nodes(G_road, seg_e[1], seg_e[0])
-                road_path = nx.shortest_path(G_road, n1, n2, weight="length")
-                lons = [G_road.nodes[n]["x"] for n in road_path]
-                lats = [G_road.nodes[n]["y"] for n in road_path]
-                lw = 4 if mode == "bus" else 3
-                ax.plot(lons, lats, color=color, linewidth=lw,
-                        alpha=0.95, solid_capstyle="round", zorder=5)
+                if n1 == n2:
+                    # Same road node: draw a short dotted stub so the map still
+                    # shows something, but don't attempt a zero-length path
+                    ax.plot([seg_s[1], seg_e[1]], [seg_s[0], seg_e[0]],
+                            color=color, linewidth=2, linestyle=":", alpha=0.6, zorder=4)
+                else:
+                    road_path = nx.shortest_path(G_road, n1, n2, weight="length")
+                    lons = [G_road.nodes[n]["x"] for n in road_path]
+                    lats = [G_road.nodes[n]["y"] for n in road_path]
+                    lw = 4 if mode == "bus" else 3
+                    ax.plot(lons, lats, color=color, linewidth=lw,
+                            alpha=0.95, solid_capstyle="round", zorder=5)
             except Exception:
                 ax.plot([seg_s[1], seg_e[1]], [seg_s[0], seg_e[0]],
                         color=color, linewidth=2, linestyle="--", alpha=0.8, zorder=4)
@@ -387,7 +425,7 @@ def render_map(steps, start_coords, end_coords, G_road, data) -> io.BytesIO:
     # ── Stop labels ──
     stop_labels = {}
     for step in steps:
-        if step["mode"] in ("train", "bus"):
+        if step["mode"] in ("train", "metro", "monorail", "bus"):
             for coord_key, node_key in [("seg_start", "from"), ("seg_end", "to")]:
                 coord = step.get(coord_key)
                 node  = step.get(node_key)
@@ -395,12 +433,13 @@ def render_map(steps, start_coords, end_coords, G_road, data) -> io.BytesIO:
                     stop_labels[coord] = friendly_node(node, data)
 
     for (lat, lon), label in stop_labels.items():
-        is_train = any(
-            s["mode"] == "train" and (
-                s.get("seg_start") == (lat, lon) or s.get("seg_end") == (lat, lon))
-            for s in steps
-        )
-        dot_color = LOCAL_COLORS["train"] if is_train else LOCAL_COLORS["bus"]
+        # Find which mode uses this coordinate and color accordingly
+        dot_color = LOCAL_COLORS["bus"]   # default
+        for s in steps:
+            if (s.get("seg_start") == (lat, lon) or s.get("seg_end") == (lat, lon)):
+                if s["mode"] in LOCAL_COLORS:
+                    dot_color = LOCAL_COLORS[s["mode"]]
+                    break
         ax.scatter(lon, lat, c=dot_color, s=60, zorder=7,
                    edgecolors="white", linewidths=0.5)
         ax.annotate(label, xy=(lon, lat), xytext=(4, 4),
@@ -444,10 +483,10 @@ def main():
       <div style="margin-top:10px;">
         <span class="mode-badge">⚡ Earliest Arrival</span>
         <span class="mode-badge">🔄 Least Interchange</span>
+        <span class="mode-badge">🚏 Public Transport</span>
         <span class="mode-badge">🚆 Local Train</span>
         <span class="mode-badge">🚇 Metro &amp; Monorail</span>
         <span class="mode-badge">🚌 BEST Bus</span>
-        <span class="mode-badge">🚖 Cab</span>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -460,27 +499,79 @@ def main():
         st.error(f"Required data file not found: {e}")
         st.stop()
 
+    # ── Load landmarks ──
+    try:
+        landmarks_df = load_landmarks()
+    except FileNotFoundError:
+        st.error("Mumbai Landmarks.csv not found. Place it in the same directory as app.py.")
+        st.stop()
+
+    landmark_labels  = ["📌 Custom coordinates…"] + landmarks_df["label"].tolist()
+    landmark_by_label = {
+        row["label"]: (row["latitude"], row["longitude"])
+        for _, row in landmarks_df.iterrows()
+    }
+
+    def coords_from_selection(label_key, lat_key, lon_key, default_lat, default_lon):
+        """Return (lat, lon) from either the dropdown or the custom inputs."""
+        sel = st.session_state.get(label_key, landmark_labels[0])
+        if sel and sel != landmark_labels[0]:
+            return landmark_by_label[sel]
+        return (
+            st.session_state.get(lat_key, default_lat),
+            st.session_state.get(lon_key, default_lon),
+        )
+
     # ── Sidebar ──
     with st.sidebar:
+        # ── Start ──────────────────────────────────────────────────────────
         st.markdown("<div class='sidebar-card'>", unsafe_allow_html=True)
         st.subheader("📍 Start Location")
-        start_lat = st.number_input("Latitude",  value=19.0760, format="%.6f", step=0.0001, key="slat")
-        start_lon = st.number_input("Longitude", value=72.8777, format="%.6f", step=0.0001, key="slon")
+        start_sel = st.selectbox(
+            "Choose start",
+            options=landmark_labels,
+            key="start_sel",
+            help="Pick a landmark or choose 'Custom coordinates' to enter lat/lon manually",
+        )
+        if start_sel == landmark_labels[0]:
+            start_lat = st.number_input("Latitude",  value=19.0760, format="%.6f",
+                                        step=0.0001, key="slat")
+            start_lon = st.number_input("Longitude", value=72.8777, format="%.6f",
+                                        step=0.0001, key="slon")
+        else:
+            start_lat, start_lon = landmark_by_label[start_sel]
+            st.caption(f"📌 {start_lat:.5f}, {start_lon:.5f}")
         st.markdown("</div>", unsafe_allow_html=True)
 
+        # ── Destination ─────────────────────────────────────────────────────
         st.markdown("<div class='sidebar-card'>", unsafe_allow_html=True)
         st.subheader("🔴 Destination")
-        end_lat = st.number_input("Latitude",  value=19.1972, format="%.6f", step=0.0001, key="elat")
-        end_lon = st.number_input("Longitude", value=72.9780, format="%.6f", step=0.0001, key="elon")
+        end_sel = st.selectbox(
+            "Choose destination",
+            options=landmark_labels,
+            index=10,   # default to something interesting
+            key="end_sel",
+            help="Pick a landmark or choose 'Custom coordinates' to enter lat/lon manually",
+        )
+        if end_sel == landmark_labels[0]:
+            end_lat = st.number_input("Latitude",  value=19.1972, format="%.6f",
+                                      step=0.0001, key="elat")
+            end_lon = st.number_input("Longitude", value=72.9780, format="%.6f",
+                                      step=0.0001, key="elon")
+        else:
+            end_lat, end_lon = landmark_by_label[end_sel]
+            st.caption(f"📌 {end_lat:.5f}, {end_lon:.5f}")
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.subheader("🚦 Travel Mode")
         mode = st.selectbox(
             "Mode",
-            options=["earliest_arrival", "least_interchange", "train", "metro", "bus", "car"],
+            options=["earliest_arrival", "least_interchange", "public_transport",
+                     "train", "metro", "bus", "car"],
             format_func=lambda m: {
                 "earliest_arrival":  "⚡ Earliest Arrival (all modes)",
                 "least_interchange": "🔄 Least Interchange (all modes)",
+                "public_transport":  "🚏 Public Transport only (no cab)",
                 "train":             "🚆 Local Train only",
                 "metro":             "🚇 Metro & Monorail only",
                 "bus":               "🚌 Bus only",
@@ -523,21 +614,22 @@ def main():
         with c3:
             st.markdown("""
             <div class='feature-card'>
-              <div class='feature-icon'>🚇</div>
-              <div class='feature-title'>Metro &amp; Monorail</div>
-              <p class='feature-desc'>Isolates the metro network — Lines 1, 2A, 3, 7,
-              Navi Mumbai Metro and Mumbai Monorail — for quick urban hops.</p>
+              <div class='feature-icon'>🚏</div>
+              <div class='feature-title'>Public Transport Only</div>
+              <p class='feature-desc'>All transit systems, walk-only access — no cabs.
+              Forces the route to stay on trains, metro, monorail and buses end-to-end.</p>
             </div>""", unsafe_allow_html=True)
-        st.info("👈 Set your coordinates in the sidebar and click **Find Best Route**.")
+        st.info("👈 Choose your start and destination from the landmark dropdowns in the sidebar, then click **Find Best Route**.")
         return
 
     # ── Route computation ──
-    start_coords = (start_lat, start_lon)
-    end_coords   = (end_lat,   end_lon)
+    start_coords = (float(start_lat), float(start_lon))
+    end_coords   = (float(end_lat),   float(end_lon))
 
     mode_labels = {
         "earliest_arrival":  "Earliest Arrival",
         "least_interchange": "Least Interchange",
+        "public_transport":  "Public Transport only",
         "train": "Local Train", "metro": "Metro & Monorail",
         "bus": "Bus", "car": "Cab",
     }
@@ -550,7 +642,34 @@ def main():
             return
 
     if result[0] is None:
-        st.error("No route found between the selected locations.")
+        # Mode-specific helpful error messages
+        if mode == "metro":
+            st.error(
+                "No metro or monorail route found between these locations. "
+                "The metro network (Lines 1, 2A, 3, 7, Navi Mumbai Metro, Monorail) "
+                "may not serve your start or destination within the cab/walk radius. "
+                "Try **Earliest Arrival** to use all modes."
+            )
+        elif mode == "train":
+            st.error(
+                "No local train route found. "
+                "The Western, Central, Harbour or Trans-Harbour lines may not "
+                "serve both locations. Try **Earliest Arrival** to use all modes."
+            )
+        elif mode == "bus":
+            st.error(
+                "No bus route found between these locations. "
+                "No BEST bus routes were loaded that connect both points. "
+                "Try **Earliest Arrival** to use all modes."
+            )
+        elif mode == "public_transport":
+            st.error(
+                "No public transport route found. "
+                "Your start or destination may be too far from any transit stop to walk. "
+                "Try **Earliest Arrival** which allows a cab for the first/last mile."
+            )
+        else:
+            st.error("No route found between the selected locations.")
         if result[3]:
             for a in result[3]:
                 st.warning(a)
@@ -564,11 +683,17 @@ def main():
     for s in steps:
         mode_times[s["mode"]] = mode_times.get(s["mode"], 0) + s["time_min"]
 
+    # Human-readable names for the banner
+    start_name = (start_sel.split("  —  ")[0] if start_sel != landmark_labels[0]
+                  else f"{start_lat:.4f}, {start_lon:.4f}")
+    end_name   = (end_sel.split("  —  ")[0]   if end_sel   != landmark_labels[0]
+                  else f"{end_lat:.4f}, {end_lon:.4f}")
+
     st.markdown(f"""
     <div class="success-banner">
       <div>
         <div class="big">✅ Route Found!</div>
-        <div class="small">Shortest-time path across Mumbai's network</div>
+        <div class="small">{start_name} → {end_name}</div>
       </div>
       <div>
         <div class="big">⏱ {total_time:.1f} min</div>
@@ -637,10 +762,12 @@ def main():
                     f"<div class='legend-dot' style='background:{c};'></div>"
                     f"<span>{m.title()}</span></div>"
                     for m, c in {
-                        "Walk":  "#aaaaaa",
-                        "Train": "#ff3333",
-                        "Bus":   "#1e90ff",
-                        "Cab":   "#ffd700",
+                        "Walk":     "#aaaaaa",
+                        "Train":    "#ff3333",
+                        "Metro":    "#00e5c0",
+                        "Monorail": "#ff9800",
+                        "Bus":      "#1e90ff",
+                        "Cab":      "#ffd700",
                     }.items()
                 )
                 legend_items += (
