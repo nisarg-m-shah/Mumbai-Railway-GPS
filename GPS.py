@@ -675,12 +675,16 @@ class MultimodalGraphBuilder:
                         a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
                     if d_km < CAB_MIN_DIST_KM:
                         continue
-                    w = cab_t + interchange_penalty
+                    # No interchange_penalty on cab edges — taking a cab
+                    # between transit nodes is not a "line change", it's just
+                    # a cab ride. Adding penalty here caused Dijkstra to prefer
+                    # exiting one stop early to get a shorter cab, even when
+                    # riding to the correct station was faster overall.
                     for src, dst, sc, dc in [
                         (n_a, n_b, (a_a["lat"], a_a["lon"]), (a_b["lat"], a_b["lon"])),
                         (n_b, n_a, (a_b["lat"], a_b["lon"]), (a_a["lat"], a_a["lon"])),
                     ]:
-                        G.add_edge(src, dst, weight=w, mode="car",
+                        G.add_edge(src, dst, weight=cab_t, mode="car",
                                    distance_km=d_km, seg_start=sc, seg_end=dc)
 
             # ── Direct start->end cab ─────────────────────────────────────

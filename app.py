@@ -192,7 +192,7 @@ def load_landmarks():
     # Build display label: "Name (category)" but keep it concise
     def make_label(row):
         cat = str(row.get("category", "")).replace(":", " › ").replace("_", " ")
-        return f"{row['name']}"
+        return f"{row['name']}  —  {cat}"
     df["label"] = df.apply(make_label, axis=1)
     df = df.sort_values("name")
     return df
