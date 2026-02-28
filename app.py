@@ -192,7 +192,7 @@ def load_landmarks():
     # Build display label: "Name (category)" but keep it concise
     def make_label(row):
         cat = str(row.get("category", "")).replace(":", " › ").replace("_", " ")
-        return f"{row['name']}  —  {cat}"
+        return f"{row['name']}"
     df["label"] = df.apply(make_label, axis=1)
     df = df.sort_values("name")
     return df
@@ -201,7 +201,7 @@ def load_landmarks():
 # ──────────────────────────────────────────────────────────────────────────────
 # HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
-MODE_EMOJI  = {"walk": "🚶", "train": "🚆", "metro": "🚇", "monorail": "🚝", "bus": "🚌", "car": "🚖"}
+MODE_EMOJI  = {"walk": "🚶", "train": "🚆", "metro": "🚇", "monorail": "🚝", "bus": "🚌", "car": "🚖", "wait": "⏳"}
 MODE_HEX    = {
     "train":    "#ff3333",   # local train — red
     "metro":    "#00e5c0",   # metro — teal
@@ -209,6 +209,7 @@ MODE_HEX    = {
     "bus":      "#1e90ff",   # bus — blue
     "walk":     "#aaaaaa",   # walk — grey
     "car":      "#ffd700",   # cab — gold
+    "wait":     "#b39ddb",   # transfer wait — soft purple
 }
 
 def friendly_node(node_id: str, data: MumbaiData) -> str:
@@ -228,19 +229,27 @@ def friendly_node(node_id: str, data: MumbaiData) -> str:
         station_name = inner.split("__")[0]      # "Andheri"
         return station_name.title()
     if node_id.startswith("bus_"):
-        stop_id = node_id[len("bus_"):]
+        # Node ID format: bus_{stop_id}__{route}  (or legacy bus_{stop_id})
+        inner   = node_id[len("bus_"):]
+        stop_id = inner.split("__")[0]
         rows = data.bus_df[data.bus_df["stop_id"] == stop_id]["stop_name"]
         return rows.iloc[0].title() if not rows.empty else stop_id
     return node_id
 
 
 def group_into_legs(steps):
-    """Merge consecutive steps with the same mode+route into a single leg."""
+    """Merge consecutive steps with the same mode+route into a single leg.
+    Transfer/wait steps are never merged — they always stand alone.
+    Because wait steps create their own leg, the merge chain breaks naturally
+    at every transfer without any extra bookkeeping."""
     legs = []
     for step in steps:
-        mode  = step["mode"]
-        route = step.get("route", "")
-        if legs and legs[-1]["mode"] == mode and legs[-1]["route"] == route:
+        mode    = step["mode"]
+        route   = step.get("route", "")
+        is_wait = (mode == "wait")  # only actual wait steps break the merge chain
+        if (legs and not is_wait
+                and legs[-1]["mode"] == mode and legs[-1]["route"] == route
+                and not legs[-1].get("is_transfer")):
             legs[-1]["steps"].append(step)
             legs[-1]["distance_km"] += step["distance_km"]
             legs[-1]["time_min"]    += step["time_min"]
@@ -251,13 +260,16 @@ def group_into_legs(steps):
                 "steps":       [step],
                 "distance_km": step["distance_km"],
                 "time_min":    step["time_min"],
+                "is_transfer": is_wait,
             })
     return legs
 
 
 def legs_for_display(legs):
-    """Filter out walk legs under 100 m (but their time still counts in total)."""
-    return [l for l in legs if not (l["mode"] == "walk" and l["distance_km"] < 0.1)]
+    """Filter out tiny non-transfer walk legs under 100 m.
+    Transfer/wait legs are always kept — they carry wait times."""
+    return [l for l in legs if l["mode"] == "wait"
+            or not (l["mode"] == "walk" and l["distance_km"] < 0.1)]
 
 
 def render_progress_bar(legs, total_time):
@@ -297,6 +309,9 @@ def render_leg_card(leg, idx, data: MumbaiData):
     elif mode == "walk":
         route_label = ""
         header_text = f"{emoji} Walk"
+    elif mode == "wait":
+        route_label = ""
+        header_text = f"{emoji} Transfer / Wait"
     else:
         route_label = ""
         header_text = f"{emoji} Cab"
