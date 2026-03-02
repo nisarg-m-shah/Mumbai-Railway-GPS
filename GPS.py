@@ -14,7 +14,7 @@ Algorithm: Weighted shortest-path on unified MultiDiGraph (NetworkX)
 Required files (same directory):
   - mumbai_graph.graphml
   - Final Train Dataset.csv
-  - Final Bus Dataset.csv
+  - Bus Dataset 3.csv
 """
 
 import re
@@ -45,33 +45,15 @@ BUS_MIN_PER_KM       = 4.0
 CAR_MIN_PER_KM       = 3.0
 CAB_MIN_DIST_KM      = 1.0
 SNAP_RADIUS_KM       = 0.20  # within 200 m: zero-cost snap edge (no road graph)
-WALK_RADIUS_KM       = 1.5   # stations within this radius: walk edge (haversine)
+WALK_RADIUS_KM       = 1.0   # stations within this radius: walk edge (haversine)
 CAB_RADIUS_KM        = 8.0   # stations within this radius: cab edge (haversine)
                               # Covers ~8 km — enough to reach a better line
                               # (e.g. Worli→Cotton Green 5 km, Worli→Byculla 4.5 km)
 ROAD_FACTOR          = 1.3
 MAX_TRANSFER_DIST_KM = 0.5
-# Realistic wait times per destination mode (what you're waiting FOR after a transfer)
-WAIT_TRAIN            = 5.0   # avg wait for local train
-WAIT_METRO            = 5.0   # avg wait for metro
-WAIT_MONORAIL         = 5.0   # avg wait for monorail
-WAIT_BUS              = 15.0  # avg wait for bus
-WAIT_CAB              = 2.0   # cab pickup time
-
-ROUTING_NUDGE         = 1.0   # extra routing-only minutes to break ties in Dijkstra
-                              # (not shown to user — only discourages unnecessary transfers)
-
-def wait_for_mode(mode: str) -> float:
-    """Return the realistic wait time for the given destination transit mode."""
-    return {
-        "train":    WAIT_TRAIN,
-        "metro":    WAIT_METRO,
-        "monorail": WAIT_MONORAIL,
-        "bus":      WAIT_BUS,
-        "car":      WAIT_CAB,
-    }.get(mode, 0.0)
+TRAIN_LINE_PENALTY   = 5.0
 BUS_ROUTE_LIMIT      = 10
-INTERCHANGE_PENALTY  = 15.0  # EXTRA minutes on top of BASE_TRANSFER_PENALTY in least_interchange mode
+INTERCHANGE_PENALTY  = 20.0  # extra minutes added per mode/line change in least_interchange mode
 
 # System groupings for filtered modes
 SYSTEMS_LOCAL_TRAIN = {"Mumbai Local Train"}
@@ -124,7 +106,7 @@ class MumbaiData:
 
     def __init__(self):
         print("Loading road graph …")
-        self.G_road = ox.load_graphml(_data_path("mumbai_graph.graphml"))
+        self.G_road = ox.load_graphml(_data_path("mumbai_graph.graphml.gz"))
 
         print("Loading train data …")
         self._load_trains()
@@ -275,49 +257,38 @@ class MultimodalGraphBuilder:
         if self.mode == "car":
             self._build_car_only()
 
-        elif self.mode in ("train", "metro", "bus",
-                           "earliest_arrival", "least_interchange",
-                           "public_transport"):
-            # ── Compute routing-only transfer penalty ──────────────────
-            # transfer_penalty is a routing-only nudge added to ALL transfer edges
-            # so Dijkstra mildly discourages unnecessary changes.
-            # Real wait time is per-mode (wait_for_mode) and IS shown to the user.
-            # INTERCHANGE_PENALTY is an extra nudge only in least_interchange mode.
-            transfer_penalty = ROUTING_NUDGE
-            if self.mode == "least_interchange":
-                transfer_penalty += INTERCHANGE_PENALTY
+        elif self.mode == "train":
+            # Local trains only
+            self._build_train_layer(allowed_systems=SYSTEMS_LOCAL_TRAIN)
+            self._connect_endpoints_to_train()
 
-            # ── Build layers ──────────────────────────────────────────────
-            if self.mode == "train":
-                self._build_train_layer(allowed_systems=SYSTEMS_LOCAL_TRAIN,
-                                        interchange_penalty=transfer_penalty)
-                self._connect_endpoints_to_train()
+        elif self.mode == "metro":
+            # Metro + Monorail only (no local trains, no bus)
+            self._build_train_layer(allowed_systems=SYSTEMS_METRO)
+            self._connect_endpoints_to_train()
 
-            elif self.mode == "metro":
-                self._build_train_layer(allowed_systems=SYSTEMS_METRO,
-                                        interchange_penalty=transfer_penalty)
-                self._connect_endpoints_to_train()
+        elif self.mode == "bus":
+            self._build_bus_layer()
+            self._connect_endpoints_to_bus()
 
-            elif self.mode == "bus":
-                self._build_bus_layer()
-                self._build_bus_transfers(interchange_penalty=transfer_penalty)
-                self._connect_endpoints_to_bus()
+        elif self.mode in ("earliest_arrival", "least_interchange"):
+            # Both use the full multimodal graph.
+            # least_interchange adds INTERCHANGE_PENALTY to every transfer /
+            # mode-change edge so Dijkstra prefers fewer interchanges.
+            penalty = INTERCHANGE_PENALTY if self.mode == "least_interchange" else 0.0
+            self._build_train_layer(allowed_systems=SYSTEMS_ALL,
+                                    interchange_penalty=penalty)
+            self._build_bus_layer()
+            self._build_transfers(interchange_penalty=penalty)
+            self._connect_endpoints_combination()
 
-            elif self.mode in ("earliest_arrival", "least_interchange"):
-                self._build_train_layer(allowed_systems=SYSTEMS_ALL,
-                                        interchange_penalty=transfer_penalty)
-                self._build_bus_layer()
-                self._build_transfers(interchange_penalty=transfer_penalty)
-                self._build_bus_transfers(interchange_penalty=transfer_penalty)
-                self._connect_endpoints_combination()
-
-            elif self.mode == "public_transport":
-                self._build_train_layer(allowed_systems=SYSTEMS_ALL,
-                                        interchange_penalty=transfer_penalty)
-                self._build_bus_layer()
-                self._build_transfers(interchange_penalty=transfer_penalty)
-                self._build_bus_transfers(interchange_penalty=transfer_penalty)
-                self._connect_endpoints_walk_only()
+        elif self.mode == "public_transport":
+            # All transit systems, walk-only first/last mile (no cab edges).
+            # Minimises cab/walk distance by simply not offering cab as an option.
+            self._build_train_layer(allowed_systems=SYSTEMS_ALL)
+            self._build_bus_layer()
+            self._build_transfers()
+            self._connect_endpoints_walk_only()
 
         else:
             raise ValueError(f"Unknown mode: {self.mode}")
@@ -336,15 +307,13 @@ class MultimodalGraphBuilder:
 
     # ── Train layer ───────────────────────────────────────────────────────
 
-    def _build_train_layer(self, allowed_systems=None, interchange_penalty=0.0):
+    def _build_train_layer(self, allowed_systems=None, interchange_penalty=10.0):
         """
         Build rail edges.
 
         allowed_systems : set of System values to include (None = all).
                           e.g. SYSTEMS_LOCAL_TRAIN, SYSTEMS_METRO, SYSTEMS_ALL.
-        interchange_penalty : total penalty on transfer edges
-                      (wait_for_mode(dst_mode) + ROUTING_NUDGE [+ INTERCHANGE_PENALTY]).
-                      Added to
+        interchange_penalty : extra minutes added to transfer/walk edges between
                               different lines at the same station (least_interchange mode).
 
         Forward edge  (seq i → seq i+1): weight = Time From Previous of i+1
@@ -382,19 +351,18 @@ class MultimodalGraphBuilder:
                 t_fwd = float(row_i1["Time From Previous"])
                 d_fwd = float(row_i1["Distance From Previous"])
 
-                # Resolve display mode from System column
-                sys_val   = str(row_i.get("System", ""))
-                edge_mode = SYSTEM_TO_MODE.get(sys_val, "train")
-
                 G.add_node(node_i,
                            lat=coords_i[0], lon=coords_i[1],
                            station=row_i["Station Name"], line=line,
-                           system=sys_val, edge_mode=edge_mode)
+                           system=row_i.get("System", ""))
                 G.add_node(node_i1,
                            lat=coords_i1[0], lon=coords_i1[1],
                            station=row_i1["Station Name"], line=line,
-                           system=str(row_i1.get("System", "")),
-                           edge_mode=SYSTEM_TO_MODE.get(str(row_i1.get("System", "")), "train"))
+                           system=row_i1.get("System", ""))
+
+                # Resolve display mode from System column
+                sys_val   = str(row_i.get("System", ""))
+                edge_mode = SYSTEM_TO_MODE.get(sys_val, "train")
 
                 # Forward edge (ascending)
                 G.add_edge(node_i, node_i1,
@@ -429,18 +397,13 @@ class MultimodalGraphBuilder:
                         continue
                     ci = (ai["lat"], ai["lon"]) if ai.get("lat") else None
                     cj = (aj["lat"], aj["lon"]) if aj.get("lat") else None
-                    # interchange_penalty is routing-only; wait_for_mode gives
-                    # the realistic wait time for the destination transit mode.
-                    wt_i = wait_for_mode(ai.get("edge_mode", edge_mode))
-                    wt_j = wait_for_mode(aj.get("edge_mode", edge_mode))
-                    w_ij = wt_i + interchange_penalty   # ni→nj: waiting for nj's line
-                    w_ji = wt_j + interchange_penalty   # nj→ni: waiting for ni's line
-                    G.add_edge(ni, nj, weight=w_ij, mode="walk",
+                    w  = TRAIN_LINE_PENALTY + interchange_penalty
+                    G.add_edge(ni, nj, weight=w, mode="walk",
                                distance_km=0, seg_start=ci, seg_end=cj,
-                               is_transfer=True, base_time=0, wait_time=wt_i)
-                    G.add_edge(nj, ni, weight=w_ji, mode="walk",
+                               is_transfer=True)
+                    G.add_edge(nj, ni, weight=w, mode="walk",
                                distance_km=0, seg_start=cj, seg_end=ci,
-                               is_transfer=True, base_time=0, wait_time=wt_j)
+                               is_transfer=True)
 
     # ── Endpoint → train connections ──────────────────────────────────────
 
@@ -475,59 +438,46 @@ class MultimodalGraphBuilder:
                 h = haversine_km(lat, lon, st_lat, st_lon)
 
                 if h <= WALK_RADIUS_KM:
-                    # Resolve what mode this train node runs on (train/metro/monorail)
-                    node_edge_mode = self.G_multi.nodes[node].get("edge_mode", "train")                                      if node in self.G_multi else "train"
-                    boarding_wait  = wait_for_mode(node_edge_mode)
-
                     if h <= SNAP_RADIUS_KM:
-                        # ── Snap zone (≤200 m): zero walk cost, but still need
-                        #    to wait on the platform for the next service.
+                        # ── Snap zone (≤200 m): zero-cost edge, no road graph ──
+                        # Rail/metro stations have platform bridges so you can
+                        # always cross to the correct exit — treat as free.
                         # Mark is_snap=True so the map renderer draws nothing.
                         if ep == "start":
                             self.G_multi.add_edge(
-                                "start", node,
-                                weight=boarding_wait, mode="walk",
+                                "start", node, weight=5, mode="walk",
                                 distance_km=0, is_snap=True,
-                                is_transfer=True, base_time=0,
-                                wait_time=boarding_wait,
                                 seg_start=(lat, lon), seg_end=(st_lat, st_lon))
                         else:
                             self.G_multi.add_edge(
-                                node, "end", weight=0, mode="walk",
+                                node, "end", weight=5, mode="walk",
                                 distance_km=0, is_snap=True,
                                 seg_start=(st_lat, st_lon), seg_end=(lat, lon))
                     else:
                         # ── Walk zone: haversine * ROAD_FACTOR for walk time ──
-                        d_km   = h * ROAD_FACTOR
+                        d_km  = h * ROAD_FACTOR
                         walk_t = d_km * WALK_MIN_PER_KM
                         if ep == "start":
-                            # Walk to station + wait for the service
                             self.G_multi.add_edge(
-                                "start", node,
-                                weight=walk_t + boarding_wait, mode="walk",
+                                "start", node, weight=walk_t, mode="walk",
                                 distance_km=d_km,
-                                seg_start=(lat, lon), seg_end=(st_lat, st_lon),
-                                is_transfer=True, base_time=walk_t,
-                                wait_time=boarding_wait)
+                                seg_start=(lat, lon), seg_end=(st_lat, st_lon))
                         else:
                             self.G_multi.add_edge(
                                 node, "end", weight=walk_t, mode="walk",
                                 distance_km=d_km,
                                 seg_start=(st_lat, st_lon), seg_end=(lat, lon))
 
-                elif h <= CAB_RADIUS_KM and self.mode not in ("bus", "train", "metro", "public_transport"):
+                elif h <= CAB_RADIUS_KM:
                     # ── Cab zone: haversine x ROAD_FACTOR (no road-graph call) ──
                     d_km, cab_t = self._cab_dist_and_time(lat, lon, st_lat, st_lon)
                     if d_km < CAB_MIN_DIST_KM:
                         continue
                     if ep == "start":
-                        node_mode = self.G_multi.nodes[node].get("edge_mode", "train")                                     if node in self.G_multi else "train"
-                        bwt = wait_for_mode(node_mode)
                         self.G_multi.add_edge(
-                            "start", node, weight=cab_t + bwt, mode="car",
+                            "start", node, weight=cab_t, mode="car",
                             distance_km=d_km,
-                            seg_start=(lat, lon), seg_end=(st_lat, st_lon),
-                            wait_time=bwt, base_time=cab_t)
+                            seg_start=(lat, lon), seg_end=(st_lat, st_lon))
                     else:
                         self.G_multi.add_edge(
                             node, "end", weight=cab_t, mode="car",
@@ -570,7 +520,7 @@ class MultimodalGraphBuilder:
         """
         Build directed bus edges in ascending stop_sequence order only.
 
-        Problem: Final Bus Dataset.csv stores both directions of a route under the
+        Problem: Bus Dataset 3.csv stores both directions of a route under the
         same route_short_name, with stop_sequence restarting from 1 for each
         direction.  Naively sorting all rows by stop_sequence and iterating
         would mix the two directions (e.g. 1→5→2→3→4→6).
@@ -609,20 +559,14 @@ class MultimodalGraphBuilder:
                 for i in range(1, len(trip)):
                     prev = trip[i - 1]
                     curr = trip[i]
-                    # Include route in node ID so the same physical stop
-                    # on different routes is a distinct graph node.
-                    # This forces Dijkstra to use an explicit transfer edge to
-                    # switch routes — it cannot silently hop between routes.
-                    n_prev = f"bus_{prev['stop_id']}__{route}"
-                    n_curr = f"bus_{curr['stop_id']}__{route}"
+                    n_prev = f"bus_{prev['stop_id']}"
+                    n_curr = f"bus_{curr['stop_id']}"
                     G.add_node(n_prev,
                                lat=float(prev["stop_lat"]), lon=float(prev["stop_lon"]),
-                               stop_name=prev["stop_name"], route=route,
-                               stop_id=str(prev["stop_id"]))
+                               stop_name=prev["stop_name"])
                     G.add_node(n_curr,
                                lat=float(curr["stop_lat"]), lon=float(curr["stop_lon"]),
-                               stop_name=curr["stop_name"], route=route,
-                               stop_id=str(curr["stop_id"]))
+                               stop_name=curr["stop_name"])
                     d = haversine_km(float(prev["stop_lat"]), float(prev["stop_lon"]),
                                      float(curr["stop_lat"]), float(curr["stop_lon"]))
                     G.add_edge(n_prev, n_curr,
@@ -655,30 +599,25 @@ class MultimodalGraphBuilder:
                     d_km   = h * ROAD_FACTOR
                     walk_t = d_km * WALK_MIN_PER_KM
                     if ep == "start":
-                        # Add boarding wait for the bus you're about to take
                         self.G_multi.add_edge(
-                            "start", bn,
-                            weight=walk_t + WAIT_BUS,
-                            mode="walk",
+                            "start", bn, weight=walk_t, mode="walk",
                             distance_km=d_km,
-                            seg_start=(lat, lon), seg_end=(ba["lat"], ba["lon"]),
-                            is_transfer=True, base_time=walk_t, wait_time=WAIT_BUS)
+                            seg_start=(lat, lon), seg_end=(ba["lat"], ba["lon"]))
                     else:
                         self.G_multi.add_edge(
                             bn, "end", weight=walk_t, mode="walk",
                             distance_km=d_km,
                             seg_start=(ba["lat"], ba["lon"]), seg_end=(lat, lon))
 
-                elif h <= CAB_RADIUS_KM and self.mode not in ("bus", "train", "metro", "public_transport"):
+                elif h <= CAB_RADIUS_KM:
                     d_km, cab_t = self._cab_dist_and_time(lat, lon, ba["lat"], ba["lon"])
                     if d_km < CAB_MIN_DIST_KM:
                         continue
                     if ep == "start":
                         self.G_multi.add_edge(
-                            "start", bn, weight=cab_t + WAIT_BUS, mode="car",
+                            "start", bn, weight=cab_t, mode="car",
                             distance_km=d_km,
-                            seg_start=(lat, lon), seg_end=(ba["lat"], ba["lon"]),
-                            wait_time=WAIT_BUS, base_time=cab_t)
+                            seg_start=(lat, lon), seg_end=(ba["lat"], ba["lon"]))
                     else:
                         self.G_multi.add_edge(
                             bn, "end", weight=cab_t, mode="car",
@@ -687,7 +626,7 @@ class MultimodalGraphBuilder:
 
     # ── Transfers (combination) ───────────────────────────────────────────
 
-    def _build_transfers(self, interchange_penalty=0.0):
+    def _build_transfers(self, interchange_penalty=5.0):
         """
         Wire inter-layer transfer edges for multimodal modes.
 
@@ -714,16 +653,14 @@ class MultimodalGraphBuilder:
                 d_km = haversine_km(ta["lat"], ta["lon"], ba["lat"], ba["lon"])
                 if d_km <= MAX_TRANSFER_DIST_KM:
                     t = d_km * WALK_MIN_PER_KM
-                    wt_to_bus   = WAIT_BUS
-                    wt_to_train = wait_for_mode(ta.get("edge_mode", "train"))
-                    for src, dst, sc, dc, wt in [
-                        (tn, bn, (ta["lat"], ta["lon"]), (ba["lat"], ba["lon"]), wt_to_bus),
-                        (bn, tn, (ba["lat"], ba["lon"]), (ta["lat"], ta["lon"]), wt_to_train),
+                    w = t + interchange_penalty
+                    for src, dst, sc, dc in [
+                        (tn, bn, (ta["lat"], ta["lon"]), (ba["lat"], ba["lon"])),
+                        (bn, tn, (ba["lat"], ba["lon"]), (ta["lat"], ta["lon"])),
                     ]:
-                        G.add_edge(src, dst, weight=t + wt + interchange_penalty,
-                                   mode="walk",
+                        G.add_edge(src, dst, weight=w, mode="walk",
                                    distance_km=d_km, seg_start=sc, seg_end=dc,
-                                   is_transfer=True, base_time=t, wait_time=wt)
+                                   is_transfer=True)
 
         # ── Cab edges: transit<->transit within 20 km ─────────────────────
         # Skipped entirely in public_transport mode (no cab allowed at all)
@@ -738,23 +675,17 @@ class MultimodalGraphBuilder:
                         a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
                     if d_km < CAB_MIN_DIST_KM:
                         continue
-                    # Add boarding wait for the destination transit node.
-                    # When you arrive at a station by cab you still wait for
-                    # the next service, so this must be in Dijkstra's weight.
-                    wt_ab = wait_for_mode(a_b.get("edge_mode", "train")
-                                          if n_b.startswith("train_") else "bus")
-                    wt_ba = wait_for_mode(a_a.get("edge_mode", "train")
-                                          if n_a.startswith("train_") else "bus")
-                    G.add_edge(n_a, n_b, weight=cab_t + wt_ab, mode="car",
-                               distance_km=d_km,
-                               seg_start=(a_a["lat"], a_a["lon"]),
-                               seg_end=(a_b["lat"], a_b["lon"]),
-                               wait_time=wt_ab, base_time=cab_t)
-                    G.add_edge(n_b, n_a, weight=cab_t + wt_ba, mode="car",
-                               distance_km=d_km,
-                               seg_start=(a_b["lat"], a_b["lon"]),
-                               seg_end=(a_a["lat"], a_a["lon"]),
-                               wait_time=wt_ba, base_time=cab_t)
+                    # No interchange_penalty on cab edges — taking a cab
+                    # between transit nodes is not a "line change", it's just
+                    # a cab ride. Adding penalty here caused Dijkstra to prefer
+                    # exiting one stop early to get a shorter cab, even when
+                    # riding to the correct station was faster overall.
+                    for src, dst, sc, dc in [
+                        (n_a, n_b, (a_a["lat"], a_a["lon"]), (a_b["lat"], a_b["lon"])),
+                        (n_b, n_a, (a_b["lat"], a_b["lon"]), (a_a["lat"], a_a["lon"])),
+                    ]:
+                        G.add_edge(src, dst, weight=cab_t, mode="car",
+                                   distance_km=d_km, seg_start=sc, seg_end=dc)
 
             # ── Direct start->end cab ─────────────────────────────────────
             s_lat, s_lon = self.start_latlon
@@ -764,53 +695,6 @@ class MultimodalGraphBuilder:
                 G.add_edge("start", "end", weight=cab_t, mode="car",
                            distance_km=d_km,
                            seg_start=(s_lat, s_lon), seg_end=(e_lat, e_lon))
-
-    def _build_bus_transfers(self, interchange_penalty=0.0):
-        """
-        Add walk transfer edges between bus stops of DIFFERENT routes that are
-        within MAX_TRANSFER_DIST_KM (0.5 km) of each other.
-
-        This enables bus-to-bus interchanges.  Without this, changing bus routes
-        is impossible mid-journey (the only path would be bus→walk→train→bus
-        which is always longer and goes through the bus↔train penalty).
-
-        interchange_penalty is applied the same way as bus↔train transfers:
-        weight = walk_time + interchange_penalty, base_time = walk_time stored
-        separately so _extract_steps can display realistic times.
-
-        Only runs if bus layer has been built (_bus_subset exists).
-        """
-        if not hasattr(self, "_bus_subset"):
-            return
-
-        G = self.G_multi
-        bus_nodes = [(n, a) for n, a in G.nodes(data=True)
-                     if n.startswith("bus_") and a.get("lat") is not None]
-
-        # Since node IDs are now bus_{stop_id}__{route}, two nodes are on the
-        # same route iff they share the same route suffix. Extract route from node name.
-        def node_route(n):
-            parts = n.split("__", 1)
-            return parts[1] if len(parts) == 2 else ""
-
-        for i, (n_a, a_a) in enumerate(bus_nodes):
-            for n_b, a_b in bus_nodes[i+1:]:
-                d_km = haversine_km(a_a["lat"], a_a["lon"], a_b["lat"], a_b["lon"])
-                if d_km > MAX_TRANSFER_DIST_KM:
-                    continue
-                # Skip if same route — no transfer needed within the same route
-                if node_route(n_a) == node_route(n_b):
-                    continue
-                t = d_km * WALK_MIN_PER_KM
-                wt = WAIT_BUS   # both directions: waiting for a bus
-                for src, dst, sc, dc in [
-                    (n_a, n_b, (a_a["lat"], a_a["lon"]), (a_b["lat"], a_b["lon"])),
-                    (n_b, n_a, (a_b["lat"], a_b["lon"]), (a_a["lat"], a_a["lon"])),
-                ]:
-                    G.add_edge(src, dst, weight=t + wt + interchange_penalty,
-                               mode="walk",
-                               distance_km=d_km, seg_start=sc, seg_end=dc,
-                               is_transfer=True, base_time=t, wait_time=wt)
 
     def _connect_endpoints_walk_only(self):
         """
@@ -852,20 +736,16 @@ class MultimodalGraphBuilder:
                 h_node  = haversine_km(lat, lon, a["lat"], a["lon"])
                 is_rail = n.startswith("train_")
 
-                node_mode = a.get("edge_mode", "bus" if n.startswith("bus_") else "train")
-                bwt = wait_for_mode(node_mode)
-
                 if is_rail and h_node <= SNAP_RADIUS_KM:
-                    # Rail/metro ≤200 m: snap walk but still wait for service
+                    # Rail/metro ≤200 m: zero-cost platform-bridge snap
                     if ep == "start":
                         self.G_multi.add_edge(
-                            "start", n, weight=bwt, mode="walk",
+                            "start", n, weight=5, mode="walk",
                             distance_km=0, is_snap=True,
-                            is_transfer=True, base_time=0, wait_time=bwt,
                             seg_start=(lat, lon), seg_end=(a["lat"], a["lon"]))
                     else:
                         self.G_multi.add_edge(
-                            n, "end", weight=0, mode="walk",
+                            n, "end", weight=5, mode="walk",
                             distance_km=0, is_snap=True,
                             seg_start=(a["lat"], a["lon"]), seg_end=(lat, lon))
                 else:
@@ -875,10 +755,9 @@ class MultimodalGraphBuilder:
                         continue
                     if ep == "start":
                         self.G_multi.add_edge(
-                            "start", n, weight=walk_t + bwt, mode="walk",
+                            "start", n, weight=walk_t, mode="walk",
                             distance_km=d_km,
-                            seg_start=(lat, lon), seg_end=(a["lat"], a["lon"]),
-                            is_transfer=True, base_time=walk_t, wait_time=bwt)
+                            seg_start=(lat, lon), seg_end=(a["lat"], a["lon"]))
                     else:
                         self.G_multi.add_edge(
                             n, "end", weight=walk_t, mode="walk",
@@ -922,133 +801,48 @@ class Router:
 
         return path, steps, total_time, builder.advisories, G_multi
 
-    TRANSIT_MODES = {"train", "metro", "monorail", "bus"}
-
     def _extract_steps(self, G, path):
         """
         Extract per-step info from the shortest path.
-
-        Wait time injection:
-        - For explicit transfer edges (is_transfer=True): display_time =
-          base_time (walk) + wait_time stored on the edge. The routing nudge
-          is stripped.
-        - For implicit boardings (two consecutive transit edges whose route/line
-          changes, with no transfer edge between them — e.g. two bus routes
-          sharing a stop node): inject a synthetic wait step immediately before
-          the new boarding.  wait_for_mode(new_mode) gives the wait duration.
-        - First boarding from "start" counts as an implicit boarding too — you
-          always wait for your first vehicle.
+        For transfer/interchange edges the stored 'weight' may include a
+        penalty; we back it out so time_min reflects realistic travel time.
         """
-        TRANSIT = self.TRANSIT_MODES
-
         steps = []
         for i in range(len(path) - 1):
             u, v = path[i], path[i + 1]
             edge_data = G[u][v]
             attr = min(edge_data.values(), key=lambda a: a.get("weight", float("inf")))
 
-            wt = attr.get("wait_time", 0)
-
+            raw_weight = attr.get("weight", 0)
+            # If this is a transfer edge, subtract the interchange penalty so
+            # the displayed time is realistic (the penalty only guides routing).
             if attr.get("is_transfer"):
-                is_endpoint_edge = (u == "start" or v == "end")
-                base_time = attr.get("base_time", 0)
-
-                if is_endpoint_edge and wt > 0:
-                    # Split: walk card (base_time) + wait card (wt) for start→transit.
-                    # Only emit walk card if there's actually walking (base_time > 0).
-                    if base_time > 0 and not attr.get("is_snap"):
-                        steps.append({
-                            "from":        u,
-                            "to":          v,
-                            "mode":        attr.get("mode", "walk"),
-                            "distance_km": attr.get("distance_km", 0),
-                            "time_min":    base_time,
-                            "route":       "",
-                            "seg_start":   attr.get("seg_start"),
-                            "seg_end":     attr.get("seg_end"),
-                            "is_snap":     False,
-                            "is_transfer": False,
-                        })
-                    # Wait card — boarding wait at the station
-                    if u != "end" and v != "end":
-                        steps.append({
-                            "from":        v,
-                            "to":          v,
-                            "mode":        "wait",
-                            "distance_km": 0,
-                            "time_min":    wt,
-                            "route":       "",
-                            "seg_start":   attr.get("seg_end"),
-                            "seg_end":     attr.get("seg_end"),
-                            "is_snap":     False,
-                            "is_transfer": True,
-                        })
+                # Recover base time: for train transfers the base is
+                # TRAIN_LINE_PENALTY; for bus↔train the base is the walk time.
+                # We stored weight = base + interchange_penalty, but we don't
+                # know the penalty here. Safest: cap displayed time at
+                # TRAIN_LINE_PENALTY for zero-distance transfers, else keep it.
+                if attr.get("distance_km", 0) == 0:
+                    display_time = TRAIN_LINE_PENALTY
                 else:
-                    # Mid-route transfer or no wait: single step rendered as "wait"
-                    steps.append({
-                        "from":        u,
-                        "to":          v,
-                        "mode":        "wait" if not is_endpoint_edge else attr.get("mode", "?"),
-                        "distance_km": attr.get("distance_km", 0),
-                        "time_min":    base_time + wt,
-                        "route":       attr.get("route", attr.get("line", "")),
-                        "seg_start":   attr.get("seg_start"),
-                        "seg_end":     attr.get("seg_end"),
-                        "is_snap":     attr.get("is_snap", False),
-                        "is_transfer": attr.get("is_transfer", False),
-                    })
-
-            elif attr.get("mode") == "car" and wt > 0:
-                # Cab edge with a boarding wait baked in:
-                # emit the cab travel as one step, then a separate "wait" step.
-                # This way the wait shows as its own ⏳ card rather than being
-                # silently absorbed into the cab time.
-                base_cab = attr.get("base_time", attr.get("weight", 0) - wt)
-                steps.append({
-                    "from":        u,
-                    "to":          v,
-                    "mode":        "car",
-                    "distance_km": attr.get("distance_km", 0),
-                    "time_min":    base_cab,
-                    "route":       "",
-                    "seg_start":   attr.get("seg_start"),
-                    "seg_end":     attr.get("seg_end"),
-                    "is_snap":     False,
-                    "is_transfer": False,
-                })
-                # Only add wait step if this is a boarding (destination is transit),
-                # not if it's the last-mile to "end".
-                if v != "end":
-                    steps.append({
-                        "from":        v,
-                        "to":          v,
-                        "mode":        "wait",
-                        "distance_km": 0,
-                        "time_min":    wt,
-                        "route":       "",
-                        "seg_start":   attr.get("seg_end"),
-                        "seg_end":     attr.get("seg_end"),
-                        "is_snap":     False,
-                        "is_transfer": True,
-                    })
-
+                    # walk transfer — just show the actual walk time (weight
+                    # minus penalty, but penalty ≤ weight so min with base)
+                    display_time = min(raw_weight, raw_weight - INTERCHANGE_PENALTY)
+                    display_time = max(display_time, 0)
             else:
-                steps.append({
-                    "from":        u,
-                    "to":          v,
-                    "mode":        attr.get("mode", "?"),
-                    "distance_km": attr.get("distance_km", 0),
-                    "time_min":    attr.get("weight", 0),
-                    "route":       attr.get("route", attr.get("line", "")),
-                    "seg_start":   attr.get("seg_start"),
-                    "seg_end":     attr.get("seg_end"),
-                    "is_snap":     attr.get("is_snap", False),
-                    "is_transfer": False,
-                })
+                display_time = raw_weight
 
-        # Wait times are baked into graph weights so Dijkstra compared routes
-        # fairly. Here we split cab+wait into separate display steps so the
-        # user sees the wait as its own ⏳ card.
+            steps.append({
+                "from":        u,
+                "to":          v,
+                "mode":        attr.get("mode", "?"),
+                "distance_km": attr.get("distance_km", 0),
+                "time_min":    display_time,
+                "route":       attr.get("route", attr.get("line", "")),
+                "seg_start":   attr.get("seg_start"),
+                "seg_end":     attr.get("seg_end"),
+                "is_snap":     attr.get("is_snap", False),
+            })
         return steps
 
 
@@ -1122,103 +916,3 @@ class Visualizer:
         plt.savefig("route_map.png", dpi=150, bbox_inches="tight")
         plt.show()
         print("Map saved to route_map.png")
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# CLI MAIN
-# ──────────────────────────────────────────────────────────────────────────────
-
-KNOWN_PLACES = {
-    "Chhatrapati Shivaji Maharaj Terminus (CSMT)": (18.9398, 72.8354),
-    "Dadar":        (19.0178, 72.8478),
-    "Andheri":      (19.1196, 72.8470),
-    "Bandra":       (19.0596, 72.8295),
-    "Kurla":        (19.0728, 72.8826),
-    "Thane":        (19.1972, 72.9780),
-    "Borivali":     (19.2307, 72.8567),
-    "Churchgate":   (18.9322, 72.8264),
-    "Ghatkopar":    (19.0863, 72.9081),
-    "Powai":        (19.1176, 72.9060),
-    "BKC":          (19.0660, 72.8654),
-    "Panvel":       (18.9894, 73.1175),
-    "Mulund":       (19.1726, 72.9560),
-    "Vashi":        (19.0771, 73.0071),
-}
-
-
-def select_place(prompt_text):
-    names = list(KNOWN_PLACES.keys())
-    print(f"\n{prompt_text}")
-    for i, name in enumerate(names):
-        print(f"  {i:2d}. {name}")
-    while True:
-        try:
-            idx = int(input("Enter number: "))
-            if 0 <= idx < len(names):
-                return names[idx], KNOWN_PLACES[names[idx]]
-        except ValueError:
-            pass
-        print("Invalid selection.")
-
-
-def select_mode():
-    modes = ["train", "bus", "car", "combination"]
-    print("\nSelect travel mode:")
-    for i, m in enumerate(modes):
-        print(f"  {i}. {m}")
-    while True:
-        try:
-            idx = int(input("Enter number: "))
-            if 0 <= idx < len(modes):
-                return modes[idx]
-        except ValueError:
-            pass
-        print("Invalid.")
-
-
-def print_route(steps, total_time, advisories):
-    print("\n" + "="*60)
-    print("  ROUTE SUMMARY")
-    print("="*60)
-    mode_time = {}
-    for step in steps:
-        m = step["mode"]
-        mode_time[m] = mode_time.get(m, 0) + step["time_min"]
-        route_info = f"  [{step['route']}]" if step.get("route") else ""
-        print(f"  {step['mode'].upper():6s}{route_info:25s}  "
-              f"{step['distance_km']:5.2f} km  "
-              f"{step['time_min']:5.1f} min  "
-              f"{step['from']} → {step['to']}")
-    print("-"*60)
-    print(f"  TOTAL TIME: {total_time:.1f} minutes")
-    for m, t in mode_time.items():
-        print(f"    {m.upper():10s}: {t:.1f} min")
-    if advisories:
-        print("\n  Advisories:")
-        for a in advisories:
-            print(f"    • {a}")
-    print("="*60)
-
-
-def main():
-    data   = MumbaiData()
-    router = Router(data)
-    viz    = Visualizer(data)
-    start_name, start_coords = select_place("Select START:")
-    end_name,   end_coords   = select_place("Select DESTINATION:")
-    mode = select_mode()
-    print(f"\nComputing {mode} route: {start_name} → {end_name} …")
-    t0 = time.time()
-    result = router.route(start_coords, end_coords, mode)
-    print(f"Done in {time.time()-t0:.2f}s")
-    if result[0] is None:
-        print("No route found.")
-        return
-    path, steps, total_time, advisories, G_multi = result
-    print_route(steps, total_time, advisories)
-    viz.plot(steps, start_coords, end_coords,
-             title=f"{mode.title()}: {start_name} → {end_name}")
-
-
-if __name__ == "__main__":
-    main()
